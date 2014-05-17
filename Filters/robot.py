@@ -10,11 +10,11 @@ def beacon_readings(actual_x, actual_y):
     return r_a_, r_b_
 
 
-def new_robot_coordinates(actual_x, actual_y):
+def new_robot_coordinates(old_x, old_y):
     """ Return new coordinates for the robot by moving a random distance in a random direction """
     d = random.normalvariate(5,1)
     theta = random.uniform(math.pi/5 - math.pi/36, math.pi/5 + math.pi/36)
-    new_x = actual_x + d * math.cos(theta)
-    new_y = actual_y + d * math.sin(theta)
+    new_x = old_x + d * math.cos(theta)
+    new_y = old_y + d * math.sin(theta)
     return new_x, new_y
 

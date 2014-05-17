@@ -47,6 +47,7 @@ class Table:
         return " & ".join(map(str, (self.means() + self.variances()))) + " \\\\\n"
 
     def transition(self):
+        """Apply random robot movements to each point."""
         for point in self.points:
             point.transition()
 
@@ -64,5 +65,6 @@ class Point:
         return "({},{})[w={}]".format( self.x, self.y, self.w)
 
     def transition(self):
-        """ What does this method do? """
+        """Apply random robot movement."""
+        self.x, self.y = robot.new_robot_coordinates(self.x, self.y)
         return
