@@ -1,6 +1,13 @@
 import random
 import math
 
+"""
+Functions needed by both filter.py and table.py have to go in here in order
+to avoid circular imports. (Might be better to just merge everything into a
+single file.)
+"""
+
+
 def beacon_readings(actual_x, actual_y):
     """ Given the robot's (normally randomized) current position, give the normally randomized next position. """
     d_a = math.sqrt((-100 - actual_x) ** 2 + (100 - actual_y) ** 2)
