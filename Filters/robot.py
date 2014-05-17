@@ -1,0 +1,20 @@
+import random
+import math
+
+def beacon_readings(actual_x, actual_y):
+    """ Given the robot's (normally randomized) current position, give the normally randomized next position. """
+    d_a = math.sqrt((-100 - actual_x) ** 2 + (100 - actual_y) ** 2)
+    d_b = math.sqrt((150 - actual_x) ** 2 + (90 - actual_y) ** 2)
+    r_a_ = random.normalvariate(d_a, 1)
+    r_b_ = random.normalvariate(d_b, 1)
+    return r_a_, r_b_
+
+
+def new_robot_coordinates(actual_x, actual_y):
+    """ Return new coordinates for the robot by moving a random distance in a random direction """
+    d = random.normalvariate(5,1)
+    theta = random.uniform(math.pi/5 - math.pi/36, math.pi/5 + math.pi/36)
+    new_x = actual_x + d * math.cos(theta)
+    new_y = actual_y + d * math.sin(theta)
+    return new_x, new_y
+
