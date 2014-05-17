@@ -1,6 +1,8 @@
 import numpy
 import robot
 import logging
+import copy
+import random
 
 class Table:
 
@@ -22,7 +24,6 @@ class Table:
         table = Table()
         for i in range(num_points):
             table.points.append(Point(*robot.beacon_readings(x,y)))
-
         return table
 
     def assign_weights(self, r_A, r_B):
@@ -31,7 +32,15 @@ class Table:
 
     def create_sample_table(self):
         """Create a new sample table based on the weights of this table."""
-        return Table()
+        new_table = Table()
+        print "start of table creation"
+        for i in range(len(self.points)):
+            random_weight = random.random()
+            for point in self.points:
+                if point.get_normalized_weight() < random_weight:
+                    new_table.add_point_to_table(point)
+                    break
+        return new_table
 
     def means(self):
         mean_x = numpy.mean([point.x for point in self.points])
@@ -51,6 +60,10 @@ class Table:
         for point in self.points:
             point.transition()
 
+    def add_point_to_table(self, point_to_add):
+        # makes a copy of a point object and adds it to the table
+        self.points.append(copy.deepcopy(point_to_add))
+
 
 class Point:
     x = 0.
@@ -68,3 +81,7 @@ class Point:
         """Apply random robot movement."""
         self.x, self.y = robot.new_robot_coordinates(self.x, self.y)
         return
+
+    def get_normalized_weight(self):
+        # needs to return a value from 0-1
+        return self.w
