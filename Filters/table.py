@@ -33,7 +33,6 @@ class Table:
     def create_sample_table(self):
         """Create a new sample table based on the weights of this table."""
         new_table = Table()
-        print "start of table creation"
         for i in range(len(self.points)):
             random_weight = random.random()
             for point in self.points:
