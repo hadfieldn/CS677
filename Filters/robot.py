@@ -4,7 +4,7 @@ import math
 """
 Functions needed by both filter.py and table.py have to go in here in order
 to avoid circular imports. (Might be better to just merge everything into a
-single file.)
+single file.) 
 """
 
 
