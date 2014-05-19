@@ -29,8 +29,7 @@ class Table:
 
     def assign_weights(self, r_A, r_B):
         """Assign weights based on a normal distribution of likelihood from the beacon readings."""
-        for i in self.points:
-            point = self.points[i]
+        for point in self.points:
             guessed_d_A = math.sqrt((-100-point.x)**2 + (100-point.y)**2)
             guessed_d_B = math.sqrt((-150-point.y)**2 + (90-point.y)**2)
             weight_A = 1/(math.sqrt(2*math.pi))*math.exp(-0.5*(r_A - guessed_d_A)**2)
