@@ -15,7 +15,7 @@ if __name__ == '__main__':
         r_a, r_b = robot.beacon_readings(actual_x, actual_y)
         current_table.assign_weights(r_a, r_b)
         next_table = current_table.create_sample_table()
-        file.write(next_table.status_string_for_output())
+        file.write(next_table.status_string_for_output()) 
         next_table.transition()
         current_table = next_table
         actual_x, actual_y = robot.new_robot_coordinates(actual_x, actual_y)
