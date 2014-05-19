@@ -3,6 +3,7 @@ import robot
 import logging
 import copy
 import random
+import math
 
 class Table:
 
@@ -28,7 +29,13 @@ class Table:
 
     def assign_weights(self, r_A, r_B):
         """Assign weights based on a normal distribution of likelihood from the beacon readings."""
-        logging.debug("Assigning weights...")
+        for i in self.points:
+            point = self.points[i]
+            guessed_d_A = math.sqrt((-100-point.x)**2 + (100-point.y)**2)
+            guessed_d_B = math.sqrt((-150-point.y)**2 + (90-point.y)**2)
+            weight_A = 1/(math.sqrt(2*math.pi))*math.exp(-0.5*(r_A - guessed_d_A)**2)
+            weight_B = 1/(math.sqrt(2*math.pi))*math.exp(-0.5*(r_B - guessed_d_B)**2)
+            point.w = weight_A*weight_B
 
     def create_sample_table(self):
         """Create a new sample table based on the weights of this table."""
