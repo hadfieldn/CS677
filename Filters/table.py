@@ -5,6 +5,18 @@ import copy
 import random
 import math
 
+d_C = math.sqrt(250**2 + 100)
+
+def dist_to_coord(r_A, r_B):
+    # takes distance measurements from the beacons and turns them into xy-coordinates
+    alpha = math.acos((d_C**2 + r_A**2 - r_B**2)/(2*r_A*d_C))
+    c = math.pi - math.atan2(1,25) - alpha
+    x = r_A*math.sin(c) - 100
+    y = 100 + r_A*math.cos(c)
+    return x, y
+    pass
+
+
 class Table:
 
     points = []
@@ -20,11 +32,14 @@ class Table:
                     ", ".join(map(str,self.variances)))
 
     @classmethod
+
     def initialized_with_start_position(cls, num_points, x, y):
         """Constructs a table and initializes it with points located a random offset from given position. """
         table = Table()
         for i in range(num_points):
-            table.points.append(Point(*robot.beacon_readings(x,y)))
+            r_A, r_B = robot.beacon_readings(x, y)
+            guessed_x, guessed_y = dist_to_coord(r_A, r_B)
+            table.points.append(Point(guessed_x, guessed_y))
         return table
 
     def assign_weights(self, r_A, r_B):
