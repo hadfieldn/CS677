@@ -7,37 +7,16 @@ class Model(object):
 
     def __init__(self, coords):
         self.coords = coords
-
     def __str__(self):
         """Show representation of model for debugging purposes."""
         coord_str = "\n".join(map(lambda coord: ", ".join(map(str, coord)), self.coords))
-        return "Model coordinates ({}):\n{}\n\n".format(len(self.coords), coord_str)
+        return "Model coordinates ({}) [robot_x, robot_y, beacon_a, beacon_b]:\n{}\n\n".format(len(self.coords), coord_str)
 
 
     def coordinates(self):
         """Generator for iterating through coordinates as [x, y] pairs."""
         for coord in self.coords:
-            yield coord
-
-
-class RobotModel(Model):
-    """Generate robot coordinates at runtime."""
-
-    def __init__(self, count):
-        super(RobotModel, self).__init__(self.generate_coordinates(count))
-
-    def generate_coordinates(self, count=0):
-        coordinates = []
-        x = y = 0.0
-        for i in range(count):
-            # TODO: (nh) I'm thinking this should be changed to return the beacon
-            # coordinates, not actual robot coordinates (see note below).
-            new_x, new_y = robot.new_robot_coordinates(x, y)
-            coordinates.append([new_x, new_y])
-            x = new_x
-            y = new_y
-
-        return coordinates
+            yield [coord[2], coord[3]]
 
 
 class BeaconModel(Model):
@@ -62,7 +41,7 @@ class BeaconModel(Model):
             # move the robot and generate new beacon readings with random
             # offsets from actual robot coordinates (to simulate noise)
             beacon_x, beacon_y = robot.beacon_readings(actual_x, actual_y)
-            coordinates.append([beacon_x, beacon_y])
+            coordinates.append([actual_x, actual_y, beacon_x, beacon_y])
             actual_x, actual_y = robot.new_robot_coordinates(actual_x, actual_y)
 
         return coordinates
@@ -98,7 +77,7 @@ class FileModel(Model):
 
                 # cols 2, 3 are beacon readings
                 log.debug(line)
-                coordinate = [float(values[2].strip()), float(values[3].strip())]
+                coordinate = [float(values[0].strip()), float(values[1].strip()), float(values[2].strip()), float(values[3].strip())]
                 coordinates.append(coordinate)
         file.close()
         return coordinates
@@ -123,7 +102,7 @@ class KalmanSampleDataModel(Model):
         for line in file:
             log.debug(line)
             values = line.split(" ")
-            coordinate = [float(values[1].strip()), float(values[2].strip())]
+            coordinate = [float(values[3].strip()), float(values[4].strip()), float(values[1].strip()), float(values[2].strip())]
             coordinates.append(coordinate)
         file.close()
         return coordinates

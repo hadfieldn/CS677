@@ -10,13 +10,13 @@ if __name__ == '__main__':
 
     file = open("output.txt", "w")
 
-    current_table = Table.initialized_with_start_position(10000, 0, 0)
+    current_table = Table.initialized_with_start_position(100, 0, 0)
     log.debug("Initial sample table:\n{}".format(current_table))
 
-    #model = model.RobotModel(10)                # (nh) gives robot coordinates
     #model = model.BeaconModel(10)              # (nh) gives beacon coordinates (what I think we need to use)
     model = model.FileModel("test_data.txt")   # (nh) gives beacon coordinates (test data from Dr. Seppi)
-    #model = model.KalmanSampleDataModel("kalman_sample_data.txt")
+
+    print(model)
 
     for r_a, r_b in model.coordinates():
 

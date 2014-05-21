@@ -149,7 +149,10 @@ class Point:
         return "({}, {})[w={}]".format( self.x, self.y, self.w)
 
     def transition(self):
-        """Move point to new origin."""
-        self.x,self.y = robot.new_robot_coordinates(self.x,self.y)
+        """
+        Resample around current point, taking into account whatever we know about the robot's capacity for movement.
+        """
+        self.x, self.y = robot.new_robot_coordinates(self.x, self.y)
+        #self.x, self.y = robot.undirected_new_robot_coordinates(self.x, self.y)
         return
 

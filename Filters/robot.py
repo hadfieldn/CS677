@@ -26,3 +26,12 @@ def new_robot_coordinates(old_x, old_y):
     new_y = old_y + d * math.sin(theta)
     return new_x, new_y
 
+
+def undirected_new_robot_coordinates(old_x, old_y):
+    """ Return new coordinates for the robot by moving a random distance in ANY direction """
+    # even if we allow for wide range of movement, filter still works well
+    d = random.normalvariate(100,1)
+    theta = random.uniform(0, 2*math.pi)
+    new_x = old_x + d * math.cos(theta)
+    new_y = old_y + d * math.sin(theta)
+    return new_x, new_y
