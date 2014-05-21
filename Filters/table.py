@@ -1,6 +1,6 @@
 import numpy
 import robot
-import logging
+import logger as log
 import copy
 import random
 import math
@@ -14,7 +14,6 @@ def dist_to_coord(r_A, r_B):
     x = r_A*math.sin(c) - 100
     y = 100 + r_A*math.cos(c)
     return x, y
-    pass
 
 
 class Table:
@@ -22,17 +21,17 @@ class Table:
     points = []
 
     def __init__(self):
-        logging.debug("Created a Table")
+        log.trace("Created a Table")
+        return
 
     def __str__(self):
         """String showing current state of the table, for debugging purposes"""
         return "Points:\n{}\n\nMeans: {}\nVariances: {}\n"\
             .format("\n".join(map(str,self.points)),
-                    ", ".join(map(str,self.means)),
-                    ", ".join(map(str,self.variances)))
+                    ", ".join(map(str,self.means())),
+                    ", ".join(map(str,self.variances())))
 
     @classmethod
-
     def initialized_with_start_position(cls, num_points, x, y):
         """Constructs a table and initializes it with points located a random offset from given position. """
         table = Table()
