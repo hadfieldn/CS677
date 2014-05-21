@@ -1,5 +1,6 @@
 import random
 import math
+import logger as log
 
 """
 Functions needed by both filter.py and table.py have to go in here in order
