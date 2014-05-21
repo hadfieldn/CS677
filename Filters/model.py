@@ -104,5 +104,31 @@ class FileModel(Model):
         return coordinates
 
 
+class KalmanSampleDataModel(Model):
+    """
+    Load test readings from a file. Assumes lines are of this format:
+
+        1 0.8 1.91 0.622222222222 1.48555555556
+
+    where the second and third columns are the coordinates to import.
+    """
+
+    def __init__(self, file_name):
+        super(KalmanSampleDataModel, self).__init__(self.read_coordinates(file_name))
+
+    def read_coordinates(self, file_name):
+        file = open(file_name, "r")
+        coordinates = []
+        log.debug("Importing coordinates from file {}...".format(file_name))
+        for line in file:
+            log.debug(line)
+            values = line.split(" ")
+            coordinate = [float(values[1].strip()), float(values[2].strip())]
+            coordinates.append(coordinate)
+        file.close()
+        return coordinates
+
+
+
 
 

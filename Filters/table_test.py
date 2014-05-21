@@ -7,4 +7,7 @@ if __name__ == '__main__':
     print(table)
     print("Status: " + table.status_string_for_output())
 
-    print(FileModel("test_data.txt"), RobotModel(10), BeaconModel(13))
+    print(FileModel("test_data.txt"),
+          RobotModel(10),
+          BeaconModel(13),
+          KalmanSampleDataModel("kalman_sample_data.txt"))
