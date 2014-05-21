@@ -20,7 +20,14 @@ if __name__ == '__main__':
         log.debug("Coordinate: ({}, {})".format(r_a, r_b))
         current_table.assign_weights(r_a, r_b)
         next_table = current_table.create_sample_table()
-        file.write(next_table.status_string_for_output())
+
+        if log.is_debug_enabled():
+            log.debug("New Weight table:\n{}".format(next_table))
+
+        status = next_table.status_string_for_output()
+        file.write(status)
+        print(status)
+
         next_table.transition()
         current_table = next_table
     file.close()

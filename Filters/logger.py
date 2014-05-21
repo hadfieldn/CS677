@@ -26,28 +26,48 @@ def __log__(msg):
     print("{}: {}".format(__level_strings__[__level__], msg))
 
 
+def is_trace_enabled():
+    return __level__ <= TRACE
+
+
+def is_debug_enabled():
+    return __level__ <= DEBUG
+
+
+def is_info_enabled():
+    return __level__ <= INFO
+
+
+def is_warn_enabled():
+    return __level__ <= WARN
+
+
+def is_error_enabled():
+    return __level__ <= ERROR
+
+
 def trace(msg):
-    if __level__ <= TRACE:
+    if is_trace_enabled():
         __log__(msg)
 
 
 def debug(msg):
-    if __level__ <= DEBUG:
+    if is_debug_enabled():
         __log__(msg)
 
 
 def info(msg):
-    if __level__ <= INFO:
+    if is_info_enabled():
         __log__(msg)
 
 
 def warn(msg):
-    if __level__ <= WARN:
+    if is_warn_enabled():
         __log__(msg)
 
 
 def error(msg):
-    if __level__ <= ERROR:
+    if is_error_enabled():
         __log__(msg)
 
 

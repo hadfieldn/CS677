@@ -26,10 +26,11 @@ class Table:
 
     def __str__(self):
         """String showing current state of the table, for debugging purposes"""
-        return "Points:\n{}\n\nMeans: {}\nVariances: {}\n"\
-            .format("\n".join(map(str,self.points)),
-                    ", ".join(map(str,self.means())),
-                    ", ".join(map(str,self.variances())))
+        return "Points:\n{}\n\nCount: {}\nMeans: {}\nVariances: {}\n"\
+            .format("\n".join(map(str, self.points)),
+                    len(self.points),
+                    ", ".join(map(str, self.means())),
+                    ", ".join(map(str, self.variances())))
 
     @classmethod
     def initialized_with_start_position(cls, num_points, x, y):
@@ -53,12 +54,14 @@ class Table:
     def create_sample_table(self):
         """Create a new sample table based on the weights of this table."""
         new_table = Table()
-        for i in range(len(self.points)):
-            random_weight = random.random()
-            for point in self.points:
-                if point.get_normalized_weight() < random_weight:
-                    new_table.add_point_to_table(point)
-                    break
+        # for i in range(len(self.points)):
+        #     random_weight = random.random()
+        #     for point in self.points:
+        #         if point.get_normalized_weight() < random_weight:
+        #             new_table.add_point_to_table(point)
+        #             break
+
+        random_weight
         return new_table
 
     def means(self):
