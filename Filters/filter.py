@@ -6,11 +6,11 @@ import model
 
 if __name__ == '__main__':
     #logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
-    log.set_level(log.DEBUG)            # use our own logger to ensure compatibility
+    log.set_level(log.ERROR)            # use our own logger to ensure compatibility
 
     file = open("output.txt", "w")
 
-    current_table = Table.initialized_with_start_position(1000, 0, 0)
+    current_table = Table.initialized_with_start_position(10000, 0, 0)
     log.debug("Initial sample table:\n{}".format(current_table))
 
     #model = model.RobotModel(10)                # (nh) gives robot coordinates

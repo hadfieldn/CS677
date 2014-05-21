@@ -4,7 +4,7 @@ import logger as log
 import copy
 import random
 import math
-import scipy.stats as stats
+
 
 
 d_C = math.sqrt(250**2 + 100)
@@ -129,7 +129,7 @@ class Table:
         """
         new_x, new_y = self.means()
         for point in self.points:
-            point.transition(new_x, new_y)
+            point.transition()
 
     def add_point_to_table(self, point_to_add):
         # makes a copy of a point object and adds it to the table
@@ -148,9 +148,8 @@ class Point:
     def __str__(self):
         return "({}, {})[w={}]".format( self.x, self.y, self.w)
 
-    def transition(self, new_x, new_y ):
+    def transition(self):
         """Move point to new origin."""
-        self.x -= new_x
-        self.y -= new_y
+        self.x,self.y = robot.new_robot_coordinates(self.x,self.y)
         return
 
