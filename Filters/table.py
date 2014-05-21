@@ -4,6 +4,8 @@ import logger as log
 import copy
 import random
 import math
+import scipy.stats as stats
+
 
 d_C = math.sqrt(250**2 + 100)
 
@@ -18,48 +20,93 @@ def dist_to_coord(r_A, r_B):
 
 class Table:
 
-    points = []
 
     def __init__(self):
         log.trace("Created a Table")
+        self.points = []
         return
 
     def __str__(self):
         """String showing current state of the table, for debugging purposes"""
-        return "Points:\n{}\n\nCount: {}\nMeans: {}\nVariances: {}\n"\
+        return "Points:\n{}\n\nCount: {}\nMean: {}\nVariance: {}\n"\
             .format("\n".join(map(str, self.points)),
                     len(self.points),
                     ", ".join(map(str, self.means())),
                     ", ".join(map(str, self.variances())))
 
     @classmethod
-    def initialized_with_start_position(cls, num_points, x, y):
-        """Constructs a table and initializes it with points located a random offset from given position. """
+    def initialized_with_start_position(cls, num_samples, x, y):
+        """
+        Start robot at (x_0,y_0) where x_0, y_0 are random variables with N(0,1).
+        """
         table = Table()
-        for i in range(num_points):
-            r_A, r_B = robot.beacon_readings(x, y)
-            guessed_x, guessed_y = dist_to_coord(r_A, r_B)
-            table.points.append(Point(guessed_x, guessed_y))
+        for i in range(num_samples):
+            x = random.normalvariate(0, 1)
+            y = random.normalvariate(0, 1)
+            table.points.append(Point(x, y))
         return table
 
-    def assign_weights(self, r_A, r_B):
-        """Assign weights based on a normal distribution of likelihood from the beacon readings."""
+    def assign_weights(self, r_a, r_b):
+        """Assign weights based on likelihood of the point given the beacon readings."""
         for point in self.points:
-            guessed_d_A = math.sqrt((-100-point.x)**2 + (100-point.y)**2)
-            guessed_d_B = math.sqrt((-150-point.y)**2 + (90-point.y)**2)
-            weight_A = 1/(math.sqrt(2*math.pi))*math.exp(-0.5*(r_A - guessed_d_A)**2)
-            weight_B = 1/(math.sqrt(2*math.pi))*math.exp(-0.5*(r_B - guessed_d_B)**2)
-            point.w = weight_A*weight_B
+            d_a = math.sqrt((-100-point.x)**2 + (100-point.y)**2)
+            d_b = math.sqrt((150-point.x)**2 + (90-point.y)**2)
+
+            # the weight for (x,y) is the likelihood of getting the given
+            # beacon readings (r_a, r_b) with a normal distribution centered around (d_a, d_b)
+
+            # weight_a = stats.norm.pdf(r_a, loc=d_a, scale=1)
+            # weight_b = stats.norm.pdf(r_b, loc=d_b, scale=1)
+
+            weight_a = 1/(math.sqrt(2*math.pi))*math.exp(-0.5*(r_a - d_a)**2)
+            weight_b = 1/(math.sqrt(2*math.pi))*math.exp(-0.5*(r_b - d_b)**2)
+            point.w = weight_a * weight_b
+
 
     def create_sample_table(self):
-        """Create a new sample table based on the weights of this table."""
+        """
+        Create a new sample table based on the weights of this table.
+
+        Essentially we are filtering out points that seem unlikely. The means of
+        x and y in the new table will be our most likely new position.
+
+        The idea is to take random samples from the current distribution,
+        with preference according to their weights.
+
+        Algorithm:
+        Construct a cumulative weight vector where each value is the sum
+        of previous weights and the current weight. Then choose a random value
+        between 0 and the sum. The selected point is the one corresponding to the
+        entry in the cumulative vector that is closest to the random value.
+
+        """
         new_table = Table()
-        for i in range(len(self.points)):
-            random_weight = random.random()
-            for point in self.points:
-                if point.get_normalized_weight() < random_weight:
-                    new_table.add_point_to_table(point)
-                    break
+
+        num_points = len(self.points)
+
+        # construct cumulative weight vector
+        cum_weights = []
+        for i in range(num_points):
+            if i == 0:
+                cum_weights.append(self.points[i].w)
+            else:
+                cum_weights.append(cum_weights[i-1] + self.points[i].w)
+
+        # randomly select points from this table to include in new
+        # table, with probability of selection proportional to their weights
+        for i in range(num_points):         # for each entry in new table
+            random_val = random.uniform(0, cum_weights[-1])
+            for j in range(num_points):     # select randomly from the current table
+                if random_val <= cum_weights[j]:
+                    log.info("Selected point {}".format(j))
+                    break      # found it; we selected points[j]
+            else:
+                # no match found -- this should never happen
+                log.error("INTERNAL ERROR: No cumulative weight entry could be found for the random selection.")
+
+            # do a deep copy because we're sampling with replacement
+            new_table.add_point_to_table(self.points[j])
+
         return new_table
 
     def means(self):
@@ -73,12 +120,16 @@ class Table:
         return var_x, var_y
 
     def status_string_for_output(self):
-        return " & ".join(map(str, (self.means() + self.variances()))) + " \\\\\n"
+        return " & ".join(map(str, (self.means() + self.variances()))) + " \\\\"
 
     def transition(self):
-        """Apply random robot movements to each point."""
+        """
+        Assume the x, y means of this sample are the actual robot coordinates,
+        move all the points to their relative positions about this new origin.
+        """
+        new_x, new_y = self.means()
         for point in self.points:
-            point.transition()
+            point.transition(new_x, new_y)
 
     def add_point_to_table(self, point_to_add):
         # makes a copy of a point object and adds it to the table
@@ -95,13 +146,11 @@ class Point:
         self.w = w_
 
     def __str__(self):
-        return "({},{})[w={}]".format( self.x, self.y, self.w)
+        return "({}, {})[w={}]".format( self.x, self.y, self.w)
 
-    def transition(self):
-        """Apply random robot movement."""
-        self.x, self.y = robot.new_robot_coordinates(self.x, self.y)
+    def transition(self, new_x, new_y ):
+        """Move point to new origin."""
+        self.x -= new_x
+        self.y -= new_y
         return
 
-    def get_normalized_weight(self):
-        # needs to return a value from 0-1
-        return self.w
