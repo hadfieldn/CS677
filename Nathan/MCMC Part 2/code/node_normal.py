@@ -30,11 +30,6 @@ class NormalNode(Node):
         mean = Node.parent_node_value(self.mean)
         var = Node.parent_node_value(self.var)
 
-#        _log.debug("p({}, {}, {})".format(self.current_value, mean, math.sqrt(var)))
-#        assert isinstance(self.current_value, float)
-#        assert isinstance(mean, float)
-#        assert isinstance(math.sqrt(var), float)
-
         p = stats.norm.pdf(self.current_value, mean, math.sqrt(var))
         _log.debug("  p = {}".format(p))
         log_p = (0 if p == 0 else math.log(p))
