@@ -1,0 +1,8 @@
+A = NormalNode(mean=20, var=1)
+E = BetaNode(alpha=1, beta=1)
+B = GammaNode(shape=A**pi, invscale=7)
+D = BetaNode(alpha=A, beta=E)
+#C = BernoulliNode(D: True, (1-D): False)
+C = BernoulliNode()
+F = PoissonNode(rate=D)
+G = NormalNode(mean=E, var=F)
