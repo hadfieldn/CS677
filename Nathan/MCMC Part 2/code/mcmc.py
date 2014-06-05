@@ -1,4 +1,4 @@
-from nodes import *
+from node import *
 from network import *
 import logging
 

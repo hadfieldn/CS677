@@ -1,29 +1,17 @@
 from unittest import TestCase
-from nodes import *
+from node_normal import *
+from node_beta import *
+from node_gamma import *
+from node_poisson import *
+from node_bernoulli import *
 from network import *
 import numpy
 import logging
 
-
 logging.basicConfig(level=logging.WARNING, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
-#logging.getLogger().setLevel(logging.DEBUG)
+
 
 class TestNetwork(TestCase):
-
-    def test_bernoulli(self):
-        b = BernoulliNode(value=False, name='B', prob=[0.001])
-        e = BernoulliNode(value=False, name='E', prob=[0.002])
-        a = BernoulliNode(value=False, name='A', parents=[b, e], prob=[0.95, 0.94, 0.29, 0.001])
-        j = BernoulliNode(value=True, name='J', parents=[a], prob=[0.90, 0.05], observed=True)
-        m = BernoulliNode(value=True, name='M', parents=[a], prob=[0.70, 0.01], observed=True)
-        network = Network(nodes=[b, e, a, j, m])
-
-        samples = network.collect_samples(burn=0, n=10000)
-        log.info("Totals: " + str(samples.totals()))
-        self.assertAlmostEqual(0.284, samples.p({b: True}, {j: True, m: True}), delta=0.05)       # Russell & Norvig
-        self.assertAlmostEqual(0.716, samples.p({b: False}, {j: True, m: True}), delta=0.05)      # Russell & Norvig
-        self.assertAlmostEqual(0.75, samples.p({a: True}, {j: True, m: True}), delta=0.05)        # Seppi
-        self.assertAlmostEqual(0.17, samples.p({e: True}, {j: True, m: True}), delta=0.05)        # Seppi
 
     def test_normal_with_plot(self):
 
@@ -32,7 +20,7 @@ class TestNetwork(TestCase):
 
         burn = 3000
         num_samples = burn + 10000
-        samples = network.collect_samples(burn=burn, n=num_samples, generator=network.metropolis_sample_generator())
+        samples = network.collect_samples(burn=burn, n=num_samples)
 
         mean = numpy.mean(samples.of_node(n))
         var = numpy.var(samples.of_node(n))
@@ -46,20 +34,20 @@ class TestNetwork(TestCase):
     def test_normal(self):
         n = NormalNode(0, "N", mean=0, var=6)
         network = Network(nodes=[n])
-        samples = network.collect_samples(burn=3000, n=13000, generator=network.metropolis_sample_generator())
+        samples = network.collect_samples(burn=3000, n=13000)
         self.assertAlmostEqual(n.mean, numpy.mean(samples.of_node(n)), delta=0.5)
         self.assertAlmostEqual(n.var, numpy.var(samples.of_node(n)), delta=0.5)
 
         n = NormalNode(10, "N", mean=10, var=2)
         network = Network(nodes=[n])
-        samples = network.collect_samples(burn=3000, n=13000, generator=network.metropolis_sample_generator())
+        samples = network.collect_samples(burn=3000, n=13000)
         self.assertAlmostEqual(n.mean, numpy.mean(samples.of_node(n)), delta=0.5)
         self.assertAlmostEqual(n.var, numpy.var(samples.of_node(n)), delta=0.5)
 
         # If value is observed, make sure we get it for the mean, with zero variance
         n.is_observed = True
         n.current_value = 8.3
-        samples = network.collect_samples(burn=0, n=100, generator=network.metropolis_sample_generator())
+        samples = network.collect_samples(burn=0, n=100)
         self.assertAlmostEqual(8.3, numpy.mean(samples.of_node(n)), places=10)
         self.assertAlmostEqual(0, numpy.var(samples.of_node(n)), places=10)
 
@@ -71,7 +59,7 @@ class TestNetwork(TestCase):
 
         burn = 3000
         num_samples = burn + 10000
-        samples = network.collect_samples(burn=burn, n=num_samples, generator=network.metropolis_sample_generator())
+        samples = network.collect_samples(burn=burn, n=num_samples)
 
         results = {}
         for node in [m, n]:
@@ -92,3 +80,103 @@ class TestNetwork(TestCase):
 
         self.assertAlmostEqual(n.mean, results[n]['mean'], delta=0.5)
         self.assertAlmostEqual(n.var, results[n]['var'], delta=0.5)
+
+    def test_invgamma_with_plot(self):
+
+        # to compute mean and variance, shape must be greater than 2 (for mean only, greater than 1)
+        n = InvGammaNode(1, "IGamma", shape=2.2, scale=1/2.5, cand_var=0.2)
+        network = Network(nodes=[n])
+
+        burn = 0
+        num_samples = burn + 50000
+        samples = network.collect_samples(burn=burn, n=num_samples)
+
+        mean = numpy.mean(samples.of_node(n))
+        var = numpy.var(samples.of_node(n))
+        title = "IGamma({}, {}): mean = {}, var = {} (burn={}, n={})".format(n.shape, n.scale, mean, var,
+                                                                             burn, num_samples - burn)
+        samples.plot_node(n, title=title)
+        samples.plot_histogram_for_node(n, title=title)
+
+        if n.shape > 1:
+            self.assertAlmostEqual(n.scale/(n.shape-1), mean, delta=0.5)
+
+        if n.shape > 2:
+            self.assertAlmostEqual(n.scale**2/((n.shape-1)**2 * (n.shape-2)), var, delta=0.5)
+
+    def test_gamma_with_plot(self):
+
+        # to compute mean and variance, shape must be greater than 2 (for mean only, greater than 1)
+        n = GammaNode(10, "Gamma", shape=9, scale=1/0.5, cand_var=2)
+        network = Network(nodes=[n])
+
+        burn = 10000
+        num_samples = burn + 10000
+        samples = network.collect_samples(burn=burn, n=num_samples)
+
+        mean = numpy.mean(samples.of_node(n))
+        var = numpy.var(samples.of_node(n))
+        title = "Gamma({}, {}): mean = {}, var = {} (burn={}, n={})".format(n.shape, n.scale, mean, var,
+                                                                             burn, num_samples - burn)
+        samples.plot_node(n, title=title)
+        samples.plot_histogram_for_node(n, title=title)
+
+        self.assertAlmostEqual(n.shape * (1/n.scale), mean, delta=0.5)
+        self.assertAlmostEqual(n.shape * (1/n.scale)**2, var, delta=0.5)
+
+    def test_beta_with_plot(self):
+
+        n = BetaNode(0.1, "Beta", alpha=2, beta=2, cand_var=0.1)
+        network = Network(nodes=[n])
+
+        burn = 10000
+        num_samples = burn + 10000
+        samples = network.collect_samples(burn=burn, n=num_samples)
+
+        mean = numpy.mean(samples.of_node(n))
+        var = numpy.var(samples.of_node(n))
+        title = "Beta({}, {}): mean = {}, var = {} (burn={}, n={})".format(n.alpha, n.beta, mean, var,
+                                                                            burn, num_samples - burn)
+        samples.plot_node(n, title=title)
+        samples.plot_histogram_for_node(n, title=title)
+
+        self.assertAlmostEqual(n.alpha/(n.alpha+n.beta), mean, delta=0.5)
+        self.assertAlmostEqual(n.alpha * n.beta / ((n.alpha+n.beta)**2*(n.alpha+n.beta+1)), var, delta=0.5)
+
+    def test_poisson_with_plot(self):
+
+        n = PoissonNode(10, "Poisson", rate=4, cand_var=5)
+        network = Network(nodes=[n])
+
+        burn = 10000
+        num_samples = burn + 100000
+        samples = network.collect_samples(burn=burn, n=num_samples)
+
+        mean = numpy.mean(samples.of_node(n))
+        var = numpy.var(samples.of_node(n))
+        title = "Poisson({}): mean = {}, var = {} (burn={}, n={})".format(n.rate, mean, var,
+                                                                            burn, num_samples - burn)
+        samples.plot_node(n, title=title)
+        samples.plot_histogram_for_node(n, title=title)
+
+        self.assertAlmostEqual(n.rate, mean, delta=0.5)
+        self.assertAlmostEqual(n.rate, var, delta=0.5)
+
+    def test_bernoulli_with_plot(self):
+
+        n = BernoulliNode(0.5, "Poisson", p=0.5)
+        network = Network(nodes=[n])
+
+        burn = 0
+        num_samples = burn + 100000
+        samples = network.collect_samples(burn=burn, n=num_samples)
+
+        mean = numpy.mean(samples.of_node(n))
+        var = numpy.var(samples.of_node(n))
+        title = "Bernoulli({}): mean = {}, var = {} (burn={}, n={})".format(n.p, mean, var,
+                                                                          burn, num_samples - burn)
+        samples.plot_node(n, title=title)
+        samples.plot_histogram_for_node(n, title=title)
+
+        self.assertAlmostEqual(n.p, mean, delta=0.01)
+        self.assertAlmostEqual(n.p * (1-n.p), var, delta=0.01)

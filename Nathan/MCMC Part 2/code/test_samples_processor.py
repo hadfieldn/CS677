@@ -1,6 +1,6 @@
 from unittest import TestCase
 from network import *
-from nodes import *
+from node import *
 import textwrap
 
 class TestSamplesProcessor(TestCase):

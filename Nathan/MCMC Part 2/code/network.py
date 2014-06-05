@@ -41,7 +41,7 @@ class Network(object):
 
         mcmc = generator
         if mcmc is None:
-            mcmc = self.gibbs_sample_generator()
+            mcmc = self.metropolis_sample_generator()
 
         progress_step = (burn + n) / 10
         cur_sample = 0
@@ -188,10 +188,16 @@ class SamplesProcessor(object):
         p.append(points)
         p.show()
 
-    def plot_histogram_for_node(self, node, title=None):
+    def plot_histogram_for_node(self, node, title=None, prior_pdf=None):
         if title is None:
             title = u"Histogram of samples of {0:s}".format(node.display_name)
         p = evilplot.Plot(title=title)
+
+        if not prior_pdf is None:
+            priord = evilplot.Function(prior_pdf)
+            priord.title = "Prior Dist"
+            p.append(priord)
+
         hist = evilplot.Histogram(self.of_node(node), 50, normalize=True)
         hist.title = node.display_name
         p.append(hist)
