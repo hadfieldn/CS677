@@ -36,7 +36,7 @@ class BetaNode(Node):
         beta = Node.parent_node_value(self.beta)
 
         p = stats.beta.pdf(self.current_value, a=alpha, b=beta)
-        log_p = (0 if p == 0 else math.log(p))
+        log_p = (Node.IMPOSSIBLE if p == 0 else math.log(p))
 
         _log.debug("p({}={}) = {}".format(self.display_name, self.current_value, p))
         return log_p

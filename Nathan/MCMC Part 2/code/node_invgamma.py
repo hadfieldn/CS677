@@ -25,6 +25,15 @@ class InvGammaNode(Node):
         return "{} = {}".format(self.pdf_name, self.current_value)
 
     @property
+    def parents(self):
+        parents = []
+        if isinstance(self.shape, Node):
+            parents.append(self.shape)
+        if isinstance(self.scale, Node):
+            parents.append(self.scale)
+        return parents
+
+    @property
     def pdf_name(self):
         return "{}({}, {})".format(self.display_name, Node.parent_node_str(self.shape), Node.parent_node_str(self.scale))
 
@@ -39,7 +48,7 @@ class InvGammaNode(Node):
         scale = Node.parent_node_value(self.scale)
 
         p = stats.invgamma.pdf(self.current_value, a=shape, scale=scale)
-        log_p = (0 if p == 0 else math.log(p))
+        log_p = (Node.IMPOSSIBLE if p == 0 else math.log(p))
 
         _log.debug("p({}={}) = {}".format(self.display_name, self.current_value, p))
         return log_p

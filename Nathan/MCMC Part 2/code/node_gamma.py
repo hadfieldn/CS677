@@ -21,7 +21,7 @@ class GammaNode(InvGammaNode):
             shape = self.shape_modifier(shape)
 
         p = stats.gamma.pdf(self.current_value, a=shape, scale=1/scale)
-        log_p = (0 if p == 0 else math.log(p))
+        log_p = (Node.IMPOSSIBLE if p == 0 else math.log(p))
 
         _log.debug("p({}={}) = {}".format(self.display_name, self.current_value, p))
         return log_p
