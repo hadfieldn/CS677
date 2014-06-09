@@ -6,6 +6,9 @@ _log = logging.getLogger("nodes")
 
 
 class Node:
+
+    IMPOSSIBLE = math.log(0.00000001)
+
     def __repr__(self):
         return self.__str__()
 
@@ -31,11 +34,19 @@ class Node:
 
     @property
     def display_name(self):
-        return self.name if not self.name is None else self.node_type
+        return self.name if not self.name is None else str(self.node_type)
 
     @staticmethod
     def parent_node_str(node):
-        return "{:.4f}".format(node) if not isinstance(node, Node) else node.display_name
+        # _log.debug("node type:" + node.__class__.__name__ + "isinstance? " + str(isinstance(node, Node)))
+        if isinstance(node, Node):
+            parent_str = node.display_name
+        elif isinstance(node, float):
+            parent_str = "{:.4f}".format(node)
+        else:
+            parent_str = "{}".format(node)
+            # _log.debug("display_name: {}".format(node.display_name))
+        return parent_str
 
     @staticmethod
     def parent_node_value(node):
