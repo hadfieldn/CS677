@@ -85,6 +85,16 @@ class SamplesProcessor(object):
         p.append(points)
         p.show()
 
+    def histogram_plot_for_node(self, node, title=None):
+        plot = evilplot.Histogram(self.of_node(node), 50, normalize=True)
+        plot.title = title if not title is None else node.display_name
+        return plot
+
+    def density_plot_for_node(self, node, title=None):
+        plot = evilplot.Density(self.of_node(node), linewidth=1)
+        plot.title = title if not title is None else node.display_name
+        return plot
+
     def plot_histogram_for_node(self, node, title=None, prior_pdf=None):
         if title is None:
             title = u"Histogram of samples of {0:s}".format(node.display_name)
@@ -95,7 +105,5 @@ class SamplesProcessor(object):
             priord.title = "Prior Dist"
             p.append(priord)
 
-        hist = evilplot.Histogram(self.of_node(node), 50, normalize=True)
-        hist.title = node.display_name
-        p.append(hist)
+        p.append(self.histogram_plot_for_node(node))
         p.show()
