@@ -1,0 +1,1 @@
+Code for this lab is in branch 'nathan-lab-3' of the Git repository, at Nathan > MCMC Part 2 > code.
