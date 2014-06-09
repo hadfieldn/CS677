@@ -43,48 +43,35 @@ The final results looked like:
 604: TimTims 7.978016; 90% interval: (5.905149, 10.156050)
 """
 
+
+data = []
+for line in open('golfdataR.dat'):
+    line_data = line.strip().split(' ')
+    line_data[1] = float(line_data[1])              # parse the score value as a float
+    data.append(line_data)
+
+golfers = sorted(set([line[0] for line in data]))
+tourns = sorted(set([line[2] for line in data]), key=int)
+
+# For candidate distributions, we use a Normal with mean 0, variance 1
 hypertournmean_candsd = 1  # variance
 hypervar_candsd = 1  # variance
 mean_candsd = 1  # variance
 obsvar_candsd = 1  # variance
 
-# tourns                    # list of tournament #s
-# golfers                   # list of golfer names
-# data                      # tuples of (name, score, tourn) from golfdataR.dat
-# est_avg                   # estimated average score
-
-data = []
-for line in open('golfdataR.dat'):
-    line_data = line.strip().split(' ')
-    line_data[1] = float(line_data[1])
-    data.append(line_data)
-
-# data = [line.strip().split(' ') for line in open('golfdataR.dat')]
-
-golfers = sorted(set([line[0] for line in data]))
-scores = [float(line[1]) for line in data]
-tourns = sorted(set([line[2] for line in data]), key=int)
-
-est_avg = numpy.mean(scores)
-
-#data = [item.strip() for item in (line.split(' ') for line in open('golfdataR.dat'))]
-
-
-#data = (item.strip() for item in (line.split(' ')) for line in open('golfdataR.dat'))
-
-hypertournmean = NormalNode(72.8, name='Tournament Hyper Mean', cand_var=hypertournmean_candsd, mean=72, var=2)
-hypertournvar = InvGammaNode(3, name='Tournament Hyper Var', cand_var=hypervar_candsd, shape=18, scale=1 / .015)
+hypertournmean = NormalNode(72, name='Tournament Hyper Mean', cand_var=hypertournmean_candsd, mean=72, var=2)
+hypertournvar = InvGammaNode(3.5, name='Tournament Hyper Var', cand_var=hypervar_candsd, shape=18, scale=1 / .015)
 tournmean = {}
 for tourn in tourns:
-    tournmean[tourn] = NormalNode(est_avg, name="Tournament {}".format(tourn), cand_var=mean_candsd,
+    tournmean[tourn] = NormalNode(72, name="Tournament {}".format(tourn), cand_var=mean_candsd,
                                   mean=hypertournmean, var=hypertournvar)
 
-hypergolfervar = InvGammaNode(3.5, name='Golfer Hyper Var', cand_var=hypervar_candsd, shape=18, scale=1 / .015)
+hypergolfervar = InvGammaNode(3.5, name='Golfer Hyper Var', cand_var=hypervar_candsd, shape=18, scale=1/.015)
 golfermean = {}
 for golfer in golfers:
-    golfermean[golfer] = NormalNode(est_avg, name=golfer, cand_var=mean_candsd, mean=0, var=hypergolfervar)
+    golfermean[golfer] = NormalNode(0, name=golfer, cand_var=mean_candsd, mean=0, var=hypergolfervar)
 
-obsvar = InvGammaNode(3.1, name='Observation Var', cand_var=obsvar_candsd, shape=83, scale=1 / .0014)
+obsvar = InvGammaNode(8.5, name='Observation Var', cand_var=obsvar_candsd, shape=83, scale=1/.0014)
 for (name, score, tourn) in data:
     NormalNode(score, observed=True, mean=[tournmean[tourn], golfermean[name]], var=obsvar)
 
@@ -95,6 +82,11 @@ nsamples = 100000
 network = Network(
     [hypertournmean, hypertournvar, hypergolfervar, obsvar] + list(tournmean.values()) + list(golfermean.values()))
 samples = network.collect_samples(burn, nsamples)
+
+samples.plot_node(golfermean['VijaySingh'])
+samples.plot_node(golfermean['TigerWoods'])
+samples.plot_histogram_for_node(golfermean['VijaySingh'])
+samples.plot_histogram_for_node(golfermean['TigerWoods'])
 
 ability = []
 for golfer in golfermean:
