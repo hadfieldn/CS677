@@ -109,6 +109,9 @@ def nodes_for_learning_four_hyperparams(learned_node_means):
 
 # Perform simulations and plot results
 
+mean_plots = []
+var_plots = []
+
 means_of_learned_nodes = {}
 for step in range(5):
     mean_node, var_node, learned_node = nodes_for_learning_hyperparam_for_step(step, means_of_learned_nodes)
@@ -138,4 +141,19 @@ for step in range(5):
         plot = samples.density_plot_for_node(node, title=plot_title)
         mean_var_plot.append(plot)
 
+        if node is mean_node:
+            mean_plots.append(plot)
+        else:
+            var_plots.append(plot)
+
     mean_var_plot.show()
+
+combined_mean_plot = evilplot.Plot(title="Faculty Data Mean as hyper-parameters are learned")
+for plot in mean_plots:
+    combined_mean_plot.append(plot)
+combined_mean_plot.show()
+
+combined_var_plot = evilplot.Plot(title="Faculty Data Variance as hyper-parameters are learned")
+for plot in var_plots:
+    combined_var_plot.append(plot)
+combined_var_plot.show()
