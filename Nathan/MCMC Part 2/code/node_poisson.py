@@ -21,25 +21,33 @@ class PoissonNode(Node):
         return "{} = {}".format(self.pdf_name, self.current_value)
 
     @property
+    def parents(self):
+        parents = []
+        if isinstance(self.rate, Node):
+            parents.append(self.rate)
+        return parents
+
+    @property
     def pdf_name(self):
         return "{}({})".format(self.display_name, Node.parent_node_str(self.rate))
 
     def is_candidate_in_domain(self, cand):
-        return cand > 0
+        return cand >= 0
 
     def select_candidate(self):
         """For Poisson, use Metropolis with a candidate distribution that rounds samples from a normal."""
-        return round(random.gauss(self.current_value, self.cand_std_dev), 0)
+        cand = round(random.gauss(self.current_value, self.cand_std_dev), 0)
+        return cand
 
 
     def log_current_conditional_probability(self):
 
-        assert(self.current_value > 0)
+        assert(self.current_value >= 0)
 
         rate = Node.parent_node_value(self.rate)
 
         p = stats.poisson.pmf(self.current_value, mu=rate)
-        log_p = (0 if p == 0 else math.log(p))
+        log_p = (Node.IMPOSSIBLE if p == 0 else math.log(p))
 
         _log.debug("p({}={}) = {}".format(self.display_name, self.current_value, p))
         return log_p
