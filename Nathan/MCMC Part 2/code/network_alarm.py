@@ -1,0 +1,5 @@
+b = BernoulliNode(name='B', prob=[0.001], value=False)
+a = BernoulliNode(name='A', prob=[0.95, 0.94, 0.29, 0.001], value=False)
+e = BernoulliNode(name='E', prob=[0.002], value=False)
+j = BernoulliNode(name='J', prob=[0.90, 0.05], value=True)
+m = BernoulliNode(name='M', prob=[0.70, 0.01], value=True)
