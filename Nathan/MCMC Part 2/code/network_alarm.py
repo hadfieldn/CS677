@@ -13,15 +13,15 @@ def generate_sample_data():
     m = BernoulliNode(0, name='M', parents=[a], p=[0.70, 0.3])
 
     network = Network(nodes=[b, e, a, j, m])
-    samples = network.collect_samples(burn=1000, n=10000)
+    samples = network.collect_samples(burn=1000, n=10000, skip=100)
 
     file = open("alarm.dat", "w")
-    samples.write_to_file(file, 100)
+    samples.write_to_file(file)
     file.close()
 
 def read_sample_data():
     data = []
-    for line in open("alarm1000.dat"):
+    for line in open("alarm_missing_20%.dat"):
         data.append(list(map(int, line.split(','))))
 
     return data
@@ -43,14 +43,19 @@ p_a_not_b_not_e = BetaNode(0.1, "P(A|B=false,E=false)", alpha=1, beta=1)
 
 for line in data:
     _log.info("Creating nodes for sample {}...".format(line))
-    b = BernoulliNode(line[0], name='B', p=[p_b], observed=True)
-    e = BernoulliNode(line[1], name='E', p=[p_e], observed=True)
-    a = BernoulliNode(line[2], name='A', parents=[b, e], p=[p_a_b_e, p_a_b_not_e, p_a_not_b_e, p_a_not_b_not_e], observed=True)
-    j = BernoulliNode(line[3], name='J', parents=[a], p=[p_j_a, p_j_not_a], observed=True)
-    m = BernoulliNode(line[4], name='M', parents=[a], p=[p_m_a, p_m_not_a], observed=True)
+    if line[0] != -1:
+        b = BernoulliNode(line[0], name='B', p=[p_b], observed=True)
+    if line[1] != -1:
+        e = BernoulliNode(line[1], name='E', p=[p_e], observed=True)
+    if line[2] != -1:
+        a = BernoulliNode(line[2], name='A', parents=[b, e], p=[p_a_b_e, p_a_b_not_e, p_a_not_b_e, p_a_not_b_not_e], observed=True)
+    if line[3] != -1:
+        j = BernoulliNode(line[3], name='J', parents=[a], p=[p_j_a, p_j_not_a], observed=True)
+    if line[4] != -1:
+        m = BernoulliNode(line[4], name='M', parents=[a], p=[p_m_a, p_m_not_a], observed=True)
 
-#nodes = [p_m_a, p_m_not_a, p_j_a, p_j_not_a, p_a_b_e, p_e, p_b, p_a_b_not_e, p_a_not_b_not_e, p_a_not_b_e]
-nodes = [p_a_b_not_e]
+nodes = [p_m_a, p_m_not_a, p_j_a, p_j_not_a, p_a_b_e, p_e, p_b, p_a_b_not_e, p_a_not_b_not_e, p_a_not_b_e]
+#nodes = [p_a_b_not_e]
 network = Network(nodes)
 samples = network.collect_samples(burn=0, n=1000)
 
