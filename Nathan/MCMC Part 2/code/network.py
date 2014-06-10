@@ -1,5 +1,6 @@
 import logging
 import evilplot
+import random
 
 log = logging.getLogger("network")
 
@@ -24,14 +25,14 @@ class Network(object):
                     network_state.append(node.current_value)
                 yield network_state
 
-    def collect_samples(self, burn, n, generator=None):
+    def collect_samples(self, burn, n, skip=100, generator=None):
         """Run burn iterations, then collect n samples"""
 
         mcmc = generator
         if mcmc is None:
             mcmc = self.metropolis_sample_generator()
 
-        progress_step = (burn + n) / 10
+        progress_step = (burn + n*skip) / 10
         cur_sample = 0
 
         log.info("Burning...")
@@ -39,18 +40,19 @@ class Network(object):
             next(mcmc)
             cur_sample += 1
             if cur_sample % progress_step == 0:
-                log.warning("{:.0%}... ".format(cur_sample/(burn+n)))
+                log.warning("{:.0%}... ".format(cur_sample/(burn+n*skip)))
 
 
         log.info("Sampling...")
         samples = []
-        for i in range(n):
+        for i in range(n*skip):
             sample = next(mcmc)
-            log.debug("Sample: " + str(sample))
-            samples.append(next(mcmc))
+            if i % skip == 0:
+                log.debug("Sample: " + str(sample))
+                samples.append(next(mcmc))
             cur_sample += 1
             if cur_sample % progress_step == 0:
-                log.warning("{:.0%}... ".format(cur_sample/(burn+n)))
+                log.warning("{:.0%}... ".format(cur_sample/(burn+n*skip)))
 
         return SamplesProcessor(self.nodes, samples)
 
@@ -67,6 +69,14 @@ class SamplesProcessor(object):
         samples_str = ", ".join([node.name for node in self.nodes]) + "\n"
         samples_str += "\n".join([", ".join(map(str, sample)) for sample in self.samples])
         return samples_str
+
+    def remove_random_data(self, percent=0.20):
+        num_samples = len(self.samples)
+        n = int(num_samples * percent * len(self.samples[0]))
+
+        for i in range(n):
+            sample = self.samples[int(random.random() * num_samples)]
+            sample[int(random.random() * len(sample))] = -1
 
     def of_node(self, node):
         """Returns samples for the given node"""
@@ -108,7 +118,5 @@ class SamplesProcessor(object):
         p.append(self.histogram_plot_for_node(node))
         p.show()
 
-    def write_to_file(self, file, skip=1):
-        for idx, sample in enumerate(self.samples):
-            if idx % skip == 0:
-                file.write(",".join(map(str, sample)) + "\n")
+    def write_to_file(self, file):
+        file.write("\n".join([",".join(map(str, sample)) for sample in self.samples]))
