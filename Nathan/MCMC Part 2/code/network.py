@@ -24,7 +24,7 @@ class Network(object):
                     network_state.append(node.current_value)
                 yield network_state
 
-    def collect_samples(self, burn, n, skip=100, generator=None):
+    def collect_samples(self, burn, n, skip=1, generator=None):
         """Run burn iterations, then collect n samples"""
 
         mcmc = generator

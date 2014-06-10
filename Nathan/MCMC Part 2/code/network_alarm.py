@@ -43,15 +43,16 @@ p_a_not_b_not_e = BetaNode(0.1, "P(A|B=false,E=false)", alpha=1, beta=1)
 
 for line in data:
     _log.info("Creating nodes for sample {}...".format(line))
+    a = b = e = a = j = m = None
     if line[0] != -1:
         b = BernoulliNode(line[0], name='B', p=[p_b], observed=True)
     if line[1] != -1:
         e = BernoulliNode(line[1], name='E', p=[p_e], observed=True)
-    if line[2] != -1:
+    if line[2] != -1 and b is not None and e is not None:
         a = BernoulliNode(line[2], name='A', parents=[b, e], p=[p_a_b_e, p_a_b_not_e, p_a_not_b_e, p_a_not_b_not_e], observed=True)
-    if line[3] != -1:
+    if line[3] != -1 and a is not None:
         j = BernoulliNode(line[3], name='J', parents=[a], p=[p_j_a, p_j_not_a], observed=True)
-    if line[4] != -1:
+    if line[4] != -1 and a is not None:
         m = BernoulliNode(line[4], name='M', parents=[a], p=[p_m_a, p_m_not_a], observed=True)
 
 nodes = [p_m_a, p_m_not_a, p_j_a, p_j_not_a, p_a_b_e, p_e, p_b, p_a_b_not_e, p_a_not_b_not_e, p_a_not_b_e]
