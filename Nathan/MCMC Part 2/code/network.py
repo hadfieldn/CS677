@@ -4,7 +4,6 @@ import random
 
 log = logging.getLogger("network")
 
-
 class Network(object):
 
     def __init__(self, nodes=None):
@@ -59,6 +58,8 @@ class Network(object):
 
 class SamplesProcessor(object):
 
+    i = 1
+
     def __init__(self, nodes, samples):
         if not type(nodes) is list:
             raise AssertionError("'nodes' argument is not a list (type = " + type(nodes).__name__ + ")")
@@ -93,7 +94,9 @@ class SamplesProcessor(object):
         points.style = 'lines'
         points.linewidth = 1
         p.append(points)
-        p.show()
+        p.ymax = 1.0
+        p.write_gpi("my_plot"+str(self.i))
+        #p.show()
 
     def histogram_plot_for_node(self, node, title=None):
         plot = evilplot.Histogram(self.of_node(node), 50, normalize=True)
@@ -116,6 +119,8 @@ class SamplesProcessor(object):
             p.append(priord)
 
         p.append(self.histogram_plot_for_node(node))
+        p.write_gpi('my_plot'+str(self.i))
+        self.i += 1
         p.show()
 
     def write_to_file(self, file):
