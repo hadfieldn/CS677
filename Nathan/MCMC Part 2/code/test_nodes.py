@@ -2,6 +2,26 @@ from unittest import TestCase
 from node_bernoulli import *
 from node_normal import *
 from node_invgamma import *
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
+
+class TestBernoulliNode(TestCase):
+
+    def setUp(self):
+        self.b = BernoulliNode(name='B', p=[0.001])
+        self.e = BernoulliNode(name='E', p=[0.002])
+        self.a = BernoulliNode(name='A', parents=[self.b, self.e], p=[0.95, 0.94, 0.29, 0.001])
+        self.j = BernoulliNode(name='J', parents=[self.a], p=[0.90, 0.05])
+        self.m = BernoulliNode(name='M', parents=[self.a], p=[0.70, 0.01])
+
+    def test_probability_of_event(self):
+        self.assertEquals(0.95, self.a.probability_of_event({self.b: True, self.e: True}))
+        self.assertEquals(0.94, self.a.probability_of_event({self.b: True, self.e: False}))
+        self.assertEquals(0.29, self.a.probability_of_event({self.b: False, self.e: True}))
+        self.assertEquals(0.001, self.a.probability_of_event({self.b: False, self.e: False}))
+        self.assertEquals(0.001, self.b.probability_of_event({}))
+        self.assertEquals(0.001, self.b.probability_of_event({self.b: False, self.e: False}))
 
 
 class TestNormalNode(TestCase):

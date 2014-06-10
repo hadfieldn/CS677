@@ -57,6 +57,8 @@ class Node:
             return node.current_value
         elif isinstance(node, list):
             return sum([Node.parent_node_value(a_node) for a_node in node])
+        elif isinstance(node, bool):
+            return 1 if node else 0
         else:
             return node
 

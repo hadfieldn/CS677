@@ -76,8 +76,8 @@ for (name, score, tourn) in data:
     NormalNode(score, observed=True, mean=[tournmean[tourn], golfermean[name]], var=obsvar)
 
 # sample from nodes
-burn = 10000
-nsamples = 100000
+burn = 1000
+nsamples = 10000
 
 network = Network(
     [hypertournmean, hypertournvar, hypergolfervar, obsvar] + list(tournmean.values()) + list(golfermean.values()))

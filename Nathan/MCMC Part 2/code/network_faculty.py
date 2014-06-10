@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(module)s %(fun
 _log = logging.getLogger("faculty")
 
 datafilename = 'faculty.dat'
-nsamples = 10000
-burn = 1000
+nsamples = 1000
+burn = 10000
 mean_candsd = 0.2
 var_candsd = 0.15
 

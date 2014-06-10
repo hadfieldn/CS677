@@ -107,3 +107,8 @@ class SamplesProcessor(object):
 
         p.append(self.histogram_plot_for_node(node))
         p.show()
+
+    def write_to_file(self, file, skip=1):
+        for idx, sample in enumerate(self.samples):
+            if idx % skip == 0:
+                file.write(",".join(map(str, sample)) + "\n")
