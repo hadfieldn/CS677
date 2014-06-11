@@ -4,7 +4,7 @@ from network import *
 from operator import itemgetter
 import numpy
 
-logging.basicConfig(level=logging.WARN, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
 
 _log = logging.getLogger("golfers")
 """
@@ -78,12 +78,10 @@ for (name, score, tourn) in data:
                mean_func=lambda mean_param: Node.param_value(mean_param[0]) + Node.param_value(mean_param[1]))
 
 # sample from nodes
-burn = 1000
-nsamples = 10000
-
 network = Network(
     [hypertournmean, hypertournvar, hypergolfervar, obsvar] + list(tournmean.values()) + list(golfermean.values()))
-samples = network.collect_samples(burn, nsamples)
+_log.info("Sampling from {} nodes...".format(len(network.nodes)))
+samples = network.collect_samples(burn=0, n=3200)
 
 samples.plot_node(golfermean['VijaySingh'])
 samples.plot_node(golfermean['TigerWoods'])
@@ -94,9 +92,9 @@ ability = []
 for golfer in golfermean:
     golfermean_samples = samples.of_node(golfermean[golfer])[:]
     golfermean_samples.sort()
-    median = golfermean_samples[nsamples // 2]
-    low = golfermean_samples[int(.05 * nsamples)]
-    high = golfermean_samples[int(.95 * nsamples)]
+    median = golfermean_samples[samples.count // 2]
+    low = golfermean_samples[int(.05 * samples.count)]
+    high = golfermean_samples[int(.95 * samples.count)]
     ability.append((golfer, low, median, high))
 
 ability = sorted(ability, key=itemgetter(2))  # sort by median score

@@ -25,6 +25,7 @@ class Network(object):
                 network_state = []
                 for node in self.nodes:
                     network_state.append(node.current_value)
+
                 yield network_state
 
     def collect_samples(self, burn, n, skip=1, generator=None):
@@ -73,6 +74,10 @@ class SamplesProcessor(object):
         samples_str = ", ".join([node.name for node in self.nodes]) + "\n"
         samples_str += "\n".join([", ".join(map(str, sample)) for sample in self.samples])
         return samples_str
+
+    @property
+    def count(self):
+        return len(self.samples)
 
     def remove_random_data(self, percent=0.20):
         num_samples = len(self.samples)
