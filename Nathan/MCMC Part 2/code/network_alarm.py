@@ -33,7 +33,9 @@ def read_sample_data():
 
 data = read_sample_data()
 
-p_m_a = BetaNode(0.1, "P(M|A=true)", alpha=1, beta=1)
+p_m_a_hyper_a = BetaNode(0.1, "P(M|A=true)-HyperAlpha", alpha=1, beta=1)
+p_m_a_hyper_b = BetaNode(0.1, "P(M|A=true)-HyperBeta", alpha=1, beta=1)
+p_m_a = BetaNode(0.1, "P(M|A=true)", alpha=p_m_a_hyper_a, beta=p_m_a_hyper_b)
 p_m_not_a = BetaNode(0.1, "P(M|A=false)", alpha=1, beta=1)
 p_j_a = BetaNode(0.1, "P(J|A=true)", alpha=1, beta=1)
 p_j_not_a = BetaNode(0.1, "P(J|A=false)", alpha=1, beta=1)
@@ -58,7 +60,7 @@ for line in data:
     if line[4] != -1 and a is not None:
         m = BernoulliNode(line[4], name='M', parents=[a], p=[p_m_a, p_m_not_a], observed=True)
 
-nodes = [p_m_a, p_m_not_a, p_j_a, p_j_not_a, p_a_b_e, p_e, p_b, p_a_b_not_e, p_a_not_b_not_e, p_a_not_b_e]
+nodes = [p_m_a_hyper_a, p_m_a_hyper_b, p_m_a, p_m_not_a, p_j_a, p_j_not_a, p_a_b_e, p_e, p_b, p_a_b_not_e, p_a_not_b_not_e, p_a_not_b_e]
 #nodes = [p_a_b_not_e]
 network = Network(nodes)
 samples = network.collect_samples(burn=1000, n=10000)
@@ -83,7 +85,7 @@ if sample_b_given_m:
     samples.plot_node(b)
 
 # for node in nodes:
-for node in [p_m_a]:
+for node in [p_m_a, p_m_a_hyper_a, p_m_a_hyper_b]:
     samples.plot_node(node)
     samples.plot_histogram_for_node(node)
 
