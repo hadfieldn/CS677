@@ -1,6 +1,7 @@
 from node_bernoulli import *
 from node_beta import *
 from network import *
+import sys
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
 _log = logging.getLogger("alarm")
@@ -13,22 +14,24 @@ def generate_sample_data():
     m = BernoulliNode(0, name='M', parents=[a], p=[0.70, 0.3])
 
     network = Network(nodes=[b, e, a, j, m])
-    samples = network.collect_samples(burn=1000, n=10000, skip=100)
+    samples = network.collect_samples(burn=1000, n=1000, skip=100)
+    samples.remove_random_data(percent=0.01)
 
-    file = open("alarm.dat", "w")
+    file = open("alarm1000_missing_01%.dat", "w")
     samples.write_to_file(file)
     file.close()
 
 def read_sample_data():
     data = []
-    for line in open("alarm_missing_20%.dat"):
+    for line in open("alarm1000_missing_50%.dat"):
         data.append(list(map(int, line.split(','))))
 
     return data
 
-generate_sample_data()
+# generate_sample_data()
+# sys.exit()
+
 data = read_sample_data()
-#print("{}".format(data[0]))
 
 p_m_a = BetaNode(0.1, "P(M|A=true)", alpha=1, beta=1)
 p_m_not_a = BetaNode(0.1, "P(M|A=false)", alpha=1, beta=1)
@@ -58,19 +61,30 @@ for line in data:
 nodes = [p_m_a, p_m_not_a, p_j_a, p_j_not_a, p_a_b_e, p_e, p_b, p_a_b_not_e, p_a_not_b_not_e, p_a_not_b_e]
 #nodes = [p_a_b_not_e]
 network = Network(nodes)
-samples = network.collect_samples(burn=0, n=1000)
+samples = network.collect_samples(burn=1000, n=10000)
 
-for node in nodes:
+sample_b_given_m = False
+if sample_b_given_m:
+    for node in nodes:
+        node.is_observed = True
+
+    b = BernoulliNode(1, name='B', p=[p_b], observed=False)
+    e = BernoulliNode(1, name='E', p=[p_e], observed=False)
+    a = BernoulliNode(1, name='A', parents=[b, e], p=[p_a_b_e, p_a_b_not_e, p_a_not_b_e, p_a_not_b_not_e], observed=False)
+    j = BernoulliNode(1, name='J', parents=[a], p=[p_j_a, p_j_not_a], observed=False)
+    m = BernoulliNode(1, name='M', parents=[a], p=[p_m_a, p_m_not_a], observed=True)
+
+    network.add_nodes([b, e, a, j, m])
+
+    _log.info("Collecting samples after making m observed")
+    samples = network.collect_samples(burn=1000, n=5000)
+    print("P(B=True|M=True) = {}".format(samples.p({b: 1}, {m: 1})))
+    samples.plot_mixing_for_outcome("P(B=True|M=True)", {b: 1}, {m: 1})
+    samples.plot_node(b)
+
+# for node in nodes:
+for node in [p_m_a]:
     samples.plot_node(node)
-    #samples.plot_histogram_for_node(node)
+    samples.plot_histogram_for_node(node)
 
 
-# samples.plot_node(j)
-# samples.plot_node(m)
-# print("P(B=False | J=True, M=True) = " + str(samples.p({b: False}, {j: True, m: True})))
-# print("P(B=True | J=True, M=True) = " + str(samples.p({b: True}, {j: True, m: True})))
-# print("P(A=True | J=True, M=True) = " + str(samples.p({a: True}, {j: True, m: True})))
-# print("P(E=True | J=True, M=True) = " + str(samples.p({e: True}, {j: True, m: True})))
-#
-# samples.plot_mixing("P(B=True|J=True,M=True)", {b: True}, {j: True, m: True})
-# samples.plot_histogram("P(B=True|J=True,M=True)", {b: True}, {j: True, m: True})

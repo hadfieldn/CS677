@@ -12,6 +12,9 @@ class Network(object):
     def __str__(self):
         pass
 
+    def add_nodes(self, nodes):
+        self.nodes.extend( nodes)
+
     def metropolis_sample_generator(self):
         """Create samples from the given nodes using the Metrpolis algorithm."""
 
@@ -96,7 +99,7 @@ class SamplesProcessor(object):
         p.append(points)
         p.ymax = 1.0
         p.write_gpi("my_plot"+str(self.i))
-        #p.show()
+        p.show()
 
     def histogram_plot_for_node(self, node, title=None):
         plot = evilplot.Histogram(self.of_node(node), 50, normalize=True)
@@ -125,3 +128,75 @@ class SamplesProcessor(object):
 
     def write_to_file(self, file):
         file.write("\n".join([",".join(map(str, sample)) for sample in self.samples]))
+
+    def is_sample_match(self, sample, event):
+
+        is_match = False
+        for idx, node in enumerate(self.nodes):
+            if node in event:
+                if sample[idx] != event[node]:
+                    break
+        else:
+            is_match = True
+
+        return is_match
+
+    def totals(self, start=None, end=None):
+
+        if start is None:
+            start = 0
+        if end is None:
+            end = len(self.samples)
+
+        num_nodes = len(self.nodes)
+        totals = [0] * num_nodes
+        for i in range(start, end):
+            sample = self.samples[i]
+            for idx in range(num_nodes):
+                if sample[idx]:
+                    totals[idx] += 1
+
+        return totals
+
+
+    def p(self, outcomes, givens, start=None, end=None):
+        """
+        :param outcome: dictionary of nodes and values
+        :param given: dictionary of nodes and values
+        :return: probability (float in range[0..1])
+        """
+
+        if start is None:
+            start = 0
+        if end is None:
+            end = len(self.samples)
+
+        matching_givens_count = 0
+        matching_outcomes_count = 0
+
+        outcomes_and_givens = {}
+        for d in [outcomes, givens]:
+            outcomes_and_givens.update(d)
+
+        for i in range(start, end):
+            sample = self.samples[i]
+            if self.is_sample_match(sample, givens):
+                matching_givens_count += 1
+            if self.is_sample_match(sample, outcomes_and_givens):
+                matching_outcomes_count += 1
+
+        p = 0 if matching_givens_count == 0 else matching_outcomes_count / matching_givens_count
+
+        return p
+
+    def plot_mixing_for_outcome(self, name, outcomes, givens):
+
+        prob_samples = [self.p(outcomes, givens, 0, i) for i in range(len(self.samples))]
+
+        p = evilplot.Plot(title=u"{}".format(name))
+        points = evilplot.Points(list(enumerate(prob_samples)))
+        points.style = 'lines'
+        points.linewidth = 1
+        p.append(points)
+        #p.write_gpi('plots/mix-%s.gpi' % name)
+        p.show()
