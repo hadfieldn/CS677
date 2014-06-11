@@ -39,7 +39,7 @@ class BernoulliNode(Node):
 
     @property
     def pdf_name(self):
-        return "{}({})".format(self.display_name, Node.parent_node_str(self.p))
+        return "{}({})".format(self.display_name, Node.param_str(self.p))
 
     def select_candidate(self):
         # p = Node.parent_node_value(self.p)
@@ -78,7 +78,7 @@ class BernoulliNode(Node):
 
         assert table_idx < len(self.p)
         table_idx = len(self.p)-1 - table_idx       # reverse the index to make the first item map to the first node
-        prob = Node.parent_node_value(self.p[table_idx])
+        prob = Node.param_value(self.p[table_idx])
 
         return prob
 
@@ -86,7 +86,7 @@ class BernoulliNode(Node):
         """
         For Bernoulli/Binomial, sample directly instead of trying to use Metropolis.
         """
-        parent_values = dict((node, Node.parent_node_value(node)) for node in self.bernoulli_parents)
+        parent_values = dict((node, Node.param_value(node)) for node in self.bernoulli_parents)
         p = self.probability_of_event(parent_values)
         if( self.current_value == 0 ):
             p = 1-p

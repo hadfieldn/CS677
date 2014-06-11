@@ -35,7 +35,7 @@ class InvGammaNode(Node):
 
     @property
     def pdf_name(self):
-        return "{}({}, {})".format(self.display_name, Node.parent_node_str(self.shape), Node.parent_node_str(self.scale))
+        return "{}({}, {})".format(self.display_name, Node.param_str(self.shape), Node.param_str(self.scale))
 
     def is_candidate_in_domain(self, cand):
         return cand > 0
@@ -44,8 +44,8 @@ class InvGammaNode(Node):
 
         assert(self.current_value > 0)
 
-        shape = Node.parent_node_value(self.shape)
-        scale = Node.parent_node_value(self.scale)
+        shape = Node.param_value(self.shape)
+        scale = Node.param_value(self.scale)
 
         p = stats.invgamma.pdf(self.current_value, a=shape, scale=scale)
         log_p = (Node.IMPOSSIBLE if p == 0 else math.log(p))

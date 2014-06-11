@@ -14,8 +14,8 @@ class GammaNode(InvGammaNode):
 
         assert(self.current_value > 0)
 
-        shape = Node.parent_node_value(self.shape)
-        scale = Node.parent_node_value(self.scale)
+        shape = Node.param_value(self.shape)
+        scale = Node.param_value(self.scale)
 
         if not self.shape_modifier is None:
             shape = self.shape_modifier(shape)

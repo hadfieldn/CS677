@@ -7,10 +7,21 @@ _log = logging.getLogger("node_normal")
 
 
 class NormalNode(Node):
-    def __init__(self, value=0, name=None, mean=0, var=1, cand_var=1, observed=False):
+    def __init__(self, value=0, name=None, mean=0, var=1, cand_var=1, observed=False, mean_func=None):
+        """
+        :param value:
+        :param name:
+        :param mean: numeric value, node, or list of nodes
+        :param var: numeric value or node
+        :param cand_var:
+        :param observed:
+        :param mean_func: function that accepts the provided mean node as a parameter and returns a numeric mean value
+        :return:
+        """
         super().__init__(value=value, name=name, cand_var=cand_var, observed=observed)
         self.mean = mean
         self.var = var
+        self.mean_func = mean_func
 
         self.connect_to_parent_node(mean)
         self.connect_to_parent_node(var)
@@ -20,19 +31,14 @@ class NormalNode(Node):
 
     @property
     def parents(self):
-        parents = []
-        if isinstance(self.mean, Node):
-            parents.append(self.mean)
-        if isinstance(self.var, Node):
-            parents.append(self.var)
-        return parents
+        return Node.nodes_in_params([self.mean, self.var])
 
     @property
     def pdf_name(self):
-        return "{}({}, {})".format(self.display_name, Node.parent_node_str(self.mean), Node.parent_node_str(self.var))
+        return "{}({}, {})".format(self.display_name, Node.param_str(self.mean), Node.param_str(self.var))
 
     def is_candidate_in_domain(self, cand):
-        return Node.parent_node_value(self.var) > 0
+        return Node.param_value(self.var) > 0
 
     def log_current_conditional_probability(self):
         """
@@ -40,8 +46,11 @@ class NormalNode(Node):
         (If 'mean' and 'var' are parent nodes, get their current_value.)
         """
 
-        mean = Node.parent_node_value(self.mean)
-        var = Node.parent_node_value(self.var)
+        if not self.mean_func is None:
+            mean = self.mean_func(self.mean)
+        else:
+            mean = Node.param_value(self.mean)
+        var = Node.param_value(self.var)
 
         if var == 0:
             _log.debug("Node " + str(self) + ": Cannot compute a normal probability when variance is 0.")

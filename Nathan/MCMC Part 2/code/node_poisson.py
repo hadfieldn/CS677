@@ -29,7 +29,7 @@ class PoissonNode(Node):
 
     @property
     def pdf_name(self):
-        return "{}({})".format(self.display_name, Node.parent_node_str(self.rate))
+        return "{}({})".format(self.display_name, Node.param_str(self.rate))
 
     def is_candidate_in_domain(self, cand):
         return cand >= 0
@@ -44,7 +44,7 @@ class PoissonNode(Node):
 
         assert(self.current_value >= 0)
 
-        rate = Node.parent_node_value(self.rate)
+        rate = Node.param_value(self.rate)
 
         p = stats.poisson.pmf(self.current_value, mu=rate)
         log_p = (Node.IMPOSSIBLE if p == 0 else math.log(p))

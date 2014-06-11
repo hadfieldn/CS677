@@ -23,7 +23,7 @@ class BetaNode(Node):
 
     @property
     def pdf_name(self):
-        return "{}({}, {})".format(self.display_name, Node.parent_node_str(self.alpha), Node.parent_node_str(self.beta))
+        return "{}({}, {})".format(self.display_name, Node.param_str(self.alpha), Node.param_str(self.beta))
 
     def is_candidate_in_domain(self, cand):
         return 0 <= cand <= 1
@@ -32,8 +32,8 @@ class BetaNode(Node):
 
         assert(self.current_value > 0)
 
-        alpha = Node.parent_node_value(self.alpha)
-        beta = Node.parent_node_value(self.beta)
+        alpha = Node.param_value(self.alpha)
+        beta = Node.param_value(self.beta)
 
         p = stats.beta.pdf(self.current_value, a=alpha, b=beta)
         log_p = (Node.IMPOSSIBLE if p == 0 else math.log(p))

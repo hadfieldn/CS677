@@ -4,8 +4,9 @@ from network import *
 from operator import itemgetter
 import numpy
 
-logging.basicConfig(level=logging.WARNING, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
+logging.basicConfig(level=logging.WARN, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
 
+_log = logging.getLogger("golfers")
 """
 The nodes of interest are the golfermeans. It is insightful to compare
 the posterior distributions for different golfers. We took the 5th, 50th,
@@ -73,7 +74,8 @@ for golfer in golfers:
 
 obsvar = InvGammaNode(8.5, name='Observation Var', cand_var=obsvar_candsd, shape=83, scale=1/.0014)
 for (name, score, tourn) in data:
-    NormalNode(score, observed=True, mean=[tournmean[tourn], golfermean[name]], var=obsvar)
+    NormalNode(score, observed=True, mean=[golfermean[name], tournmean[tourn]], var=obsvar,
+               mean_func=lambda mean_param: Node.param_value(mean_param[0]) + Node.param_value(mean_param[1]))
 
 # sample from nodes
 burn = 1000

@@ -37,30 +37,48 @@ class Node:
         return self.name if not self.name is None else str(self.node_type)
 
     @staticmethod
-    def parent_node_str(node):
+    def param_str(node):
         # _log.debug("node type:" + node.__class__.__name__ + "isinstance? " + str(isinstance(node, Node)))
         if isinstance(node, Node):
             parent_str = node.display_name
         elif isinstance(node, float):
             parent_str = "{:.4f}".format(node)
+        elif callable(node):
+            parent_str = "[function]"
         else:
             parent_str = "{}".format(node)
             # _log.debug("display_name: {}".format(node.display_name))
         return parent_str
 
+    @property
+    def parents(self):
+        raise NotImplementedError("The 'parents' property has not yet been implemented for class {}."
+                                  .format(self.__class__.__name__))
+
     @staticmethod
-    def parent_node_value(node):
+    def param_value(node):
         """
-        If node is a list of parent nodes, returns the sum of their values.
+        Parent "nodes" can either be nodes, constants or functions. This method
+        evaluates the current value of the node.
         """
         if isinstance(node, Node):
-            return node.current_value
-        elif isinstance(node, list):
-            return sum([Node.parent_node_value(a_node) for a_node in node])
+            return Node.param_value(node.current_value)
         elif isinstance(node, bool):
             return 1 if node else 0
+        elif callable(node):
+            return Node.param_value(node())
         else:
             return node
+
+    @staticmethod
+    def nodes_in_params(params):
+        nodes = []
+        for param in params:
+            if isinstance(param, Node):
+                nodes.append(param)
+            elif isinstance(param, list):
+                nodes.extend(Node.nodes_in_params(param))
+        return nodes
 
     def connect_to_parent_node(self, parent):
         """
