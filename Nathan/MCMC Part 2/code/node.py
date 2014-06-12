@@ -17,9 +17,12 @@ class Node:
         self.current_value = value
         self.cand_std_dev = math.sqrt(cand_var)     # std_dev of Gaussian distribution used to generate candidates
         self.is_observed = observed
+        self.is_pruned = False
+        self.is_query = False
 
         self._children = []  # subclass init methods should add self to parents' children
         self._log_p_current_value = None  # log of the last sample
+        self._parents = []
 
     def __str__(self):
         return self.display_name()
@@ -51,9 +54,12 @@ class Node:
         return parent_str
 
     @property
+    def children(self):
+        return self._children
+
+    @property
     def parents(self):
-        raise NotImplementedError("The 'parents' property has not yet been implemented for class {}."
-                                  .format(self.__class__.__name__))
+        return self._parents
 
     @staticmethod
     def param_value(node):
@@ -86,6 +92,7 @@ class Node:
         """
         if isinstance(parent, Node):
             parent._children.append(self)
+            self._parents.append(parent)
         elif isinstance(parent, list):
             for parentnode in parent:
                 self.connect_to_parent_node(parentnode)
@@ -128,16 +135,8 @@ class Node:
         """Can be overridden by subclasses in order to provide custom distributions. Default is Gaussian."""
         return random.gauss(self.current_value, self.cand_std_dev)
 
-    def sample_with_gibbs(self):
-        """
-        Samples boolean values.
-        """
-        if not self.is_observed:
-            p = self.probability_of_current_value_given_other_nodes()
-
-            r = random.random()
-            self.current_value = (r < p)
-            _log.debug("P(" + self.name + ") = " + str(p))
+    def sample(self):
+        self.sample_with_metropolis()
 
     def sample_with_metropolis(self):
         """Sample this node using Metropolis."""

@@ -30,10 +30,6 @@ class NormalNode(Node):
         return "{} = {}".format(self.pdf_name, self.current_value)
 
     @property
-    def parents(self):
-        return Node.nodes_in_params([self.mean, self.var])
-
-    @property
     def pdf_name(self):
         return "{}({}, {})".format(self.display_name, Node.param_str(self.mean), Node.param_str(self.var))
 

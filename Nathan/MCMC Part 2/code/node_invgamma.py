@@ -25,15 +25,6 @@ class InvGammaNode(Node):
         return "{} = {}".format(self.pdf_name, self.current_value)
 
     @property
-    def parents(self):
-        parents = []
-        if isinstance(self.shape, Node):
-            parents.append(self.shape)
-        if isinstance(self.scale, Node):
-            parents.append(self.scale)
-        return parents
-
-    @property
     def pdf_name(self):
         return "{}({}, {})".format(self.display_name, Node.param_str(self.shape), Node.param_str(self.scale))
 

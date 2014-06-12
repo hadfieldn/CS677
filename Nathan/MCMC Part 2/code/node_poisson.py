@@ -21,13 +21,6 @@ class PoissonNode(Node):
         return "{} = {}".format(self.pdf_name, self.current_value)
 
     @property
-    def parents(self):
-        parents = []
-        if isinstance(self.rate, Node):
-            parents.append(self.rate)
-        return parents
-
-    @property
     def pdf_name(self):
         return "{}({})".format(self.display_name, Node.param_str(self.rate))
 
