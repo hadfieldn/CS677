@@ -6,8 +6,9 @@ log = logging.getLogger("network")
 
 class Network(object):
 
-    def __init__(self, nodes=None):
+    def __init__(self, nodes=None, name=None):
         self.nodes = [] if nodes is None else nodes
+        self.name = name
 
     def __str__(self):
         pass
@@ -15,36 +16,49 @@ class Network(object):
     def add_nodes(self, nodes):
         self.nodes.extend( nodes)
 
-    def metropolis_sample_generator(self):
-        """Create samples from the given nodes using the Metrpolis algorithm."""
+    def sample_generator(self, nodes):
+        """
+        Create samples from the network nodes. Returns a sample set, which is a
+        list of sample values for each node, each time an individual node is sampled.
+        Thus, each sample reflects a sequential node in the Markov chain.
+        """
 
         while True:
-            for test_node in self.nodes:
-                test_node.sample_with_metropolis()
+            for test_node in nodes:
+                test_node.sample()
 
                 network_state = []
-                for node in self.nodes:
+                for node in nodes:
                     network_state.append(node.current_value)
 
                 yield network_state
 
-    def collect_samples(self, burn, n, skip=1, generator=None):
-        """Run burn iterations, then collect n samples"""
+    def collect_samples(self, burn, n, skip=1, disable_pruning=False):
+        """
+        Run 'burn' iterations, then collect 'n' samples, taking a sample every 'skip'
+        iterations.
 
-        mcmc = generator
-        if mcmc is None:
-            mcmc = self.metropolis_sample_generator()
+        Does not sample or include in the sample results any node for which
+        node.is_pruned = True.
+        """
 
-        progress_step = (burn + n*skip) / 10
-        cur_sample = 0
+        if disable_pruning:
+            sampling_nodes = self.nodes
+        else:
+            sampling_nodes = [node for node in self.nodes if not node.is_pruned]
+
+        mcmc = self.sample_generator(sampling_nodes)
+
+        total_iters = burn + n*skip
+        progress_step = total_iters / 10
+        cur_iter = 0
 
         log.info("Burning...")
         for i in range(burn):
             next(mcmc)
-            cur_sample += 1
-            if cur_sample % progress_step == 0:
-                log.warning("{:.0%}... ".format(cur_sample/(burn+n*skip)))
-
+            cur_iter += 1
+            if cur_iter % progress_step == 0:
+                log.warning("{:.0%}... ".format(cur_iter/total_iters))
 
         log.info("Sampling...")
         samples = []
@@ -53,11 +67,11 @@ class Network(object):
             if i % skip == 0:
                 log.debug("Sample: " + str(sample))
                 samples.append(next(mcmc))
-            cur_sample += 1
-            if cur_sample % progress_step == 0:
-                log.warning("{:.0%}... ".format(cur_sample/(burn+n*skip)))
+            cur_iter += 1
+            if cur_iter % progress_step == 0:
+                log.warning("{:.0%}... ".format(cur_iter/total_iters))
 
-        return SamplesProcessor(self.nodes, samples)
+        return SamplesProcessor(sampling_nodes, samples)
 
 
 class SamplesProcessor(object):
