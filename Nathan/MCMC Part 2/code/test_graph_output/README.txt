@@ -1,0 +1,1 @@
+This directory is used by test_graph as a destination for image files.
