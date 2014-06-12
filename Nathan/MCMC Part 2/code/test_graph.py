@@ -115,3 +115,15 @@ class TestPruner(TestCase):
     def test_multiple_paths_from_evidence_to_query(self):
         # test with some paths active, some not
         self.fail()
+
+    def test_shachter_fig_3(self):
+        _1 = BernoulliNode(0, '1')
+        _3 = BernoulliNode(0, '3')
+        _2 = BernoulliNode(0, '2', parents=[_1, _3])
+        _5 = BernoulliNode(0, '5')
+        _4 = BernoulliNode(0, '4', parents=[_5])
+        _6 = BernoulliNode(0, '6', parents=[_3, _5])
+        ghost = BernoulliNode(0, 'Ghost', parents=[_6])
+        network = Network([_1, _2, _3, _4, _5, _6, ghost], name="Shachter Fig. 3")
+        Pruner().prune(network, [_6], [_2, _5], graph_filename="test_graph_output/shachter_fig_3")
+        self.fail()

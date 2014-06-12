@@ -138,16 +138,21 @@ class Pruner(object):
         """
 
         if not query:
-            query = {}
+            query = []
 
         if not evidence:
-            evidence = {}
+            evidence = []
+
+        all_nodes = []
 
         # clear any flags from previous prunings
-        def clear_nodes():
+        def clear_nodes(node):
             node.is_query = False
             node.is_pruned = False
             node.is_observe = False
+            node.is_top_visited = False
+            node.is_bottom_visited = False
+
         GraphTraverser().traverse(network.nodes, clear_nodes)
 
         for node in query:
@@ -162,4 +167,3 @@ class Pruner(object):
 
         # TODO: Pruning algorithm goes here
 
-        return pruned_network

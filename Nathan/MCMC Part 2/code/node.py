@@ -19,6 +19,8 @@ class Node:
         self.is_observed = observed
         self.is_pruned = False
         self.is_query = False
+        self.is_top_visited = False
+        self.is_bottom_visited = False
 
         self._children = []  # subclass init methods should add self to parents' children
         self._log_p_current_value = None  # log of the last sample
