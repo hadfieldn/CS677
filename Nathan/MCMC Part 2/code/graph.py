@@ -113,12 +113,22 @@ class DotGraph(object):
         self.to_file(path, format="svg")
 
 
+class FlagNode(Node):
+    """
+    Node to represent whether a node's ancestors or descendents include an observed node.
+    """
+    pass
+
+
 class Pruner(object):
 
     def __init__(self):
         pass
 
     def __str__(self):
+        pass
+
+    def set_flag_nodes(self, network, query, evidence):
         pass
 
     def prune(self, network, query=None, evidence=None, graph_filename=None):
