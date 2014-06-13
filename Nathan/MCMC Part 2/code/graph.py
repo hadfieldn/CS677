@@ -128,9 +128,6 @@ class Pruner(object):
     def __str__(self):
         pass
 
-    def set_flag_nodes(self, network, query, evidence):
-        pass
-
     def prune(self, network, query=None, evidence=None, graph_filename=None):
         """
         Given a network, a list of query nodes, and a list of evidence nodes,
@@ -159,9 +156,10 @@ class Pruner(object):
         def clear_nodes(node):
             node.is_query = False
             node.is_pruned = False
-            node.is_observe = False
-            node.is_top_visited = False
-            node.is_bottom_visited = False
+            node.is_observed = False
+            node.is_top_marked = False
+            node.is_bottom_marked = False
+            node.is_visited = False
 
         GraphTraverser().traverse(network.nodes, clear_nodes)
 
@@ -175,5 +173,45 @@ class Pruner(object):
         if graph_filename:
             DotGraph(network).to_png(graph_filename + "-pre.png")
 
-        # TODO: Pruning algorithm goes here
+        FROM_CHILD = True
+        FROM_PARENT = False
+        scheduled_nodes = [(node, FROM_CHILD) for node in query]
+        while len(scheduled_nodes):
+            (node, is_from_child) = scheduled_nodes.pop()
 
+            node.is_visited = True
+            if is_from_child and not node.is_observed:
+                if not node.is_top_marked:
+                    node.is_top_marked = True
+                    for parent_node in node.parents:
+                        scheduled_nodes.append((parent_node, FROM_CHILD))
+                if not node.is_bottom_marked:
+                    node.is_bottom_marked = True
+                    for child_node in node.children:
+                        scheduled_nodes.append((child_node, FROM_PARENT))
+            elif not is_from_child:
+                if node.is_observed and not node.is_top_marked:
+                    node.is_top_marked = True
+                    for parent_node in node.parents:
+                        scheduled_nodes.append((parent_node, FROM_CHILD))
+                elif node.is_observed and not node.is_bottom_marked:
+                    node.is_bottom_marked = True
+                    for child_node in node.children:
+                        scheduled_nodes.append((child_node, FROM_PARENT))
+
+        def mark_pruned_nodes(node):
+
+            if isinstance(node, FlagNode):
+                node.children.remove(node)
+                node.parents.remove(node)
+
+            if not node.is_bottom_marked:
+                node.is_pruned = True
+            if node.is_observed and not node.is_visited:
+                node.is_pruned = True
+
+        GraphTraverser().traverse(network.nodes, mark_pruned_nodes)
+
+        # Record the post-pruning network
+        if graph_filename:
+            DotGraph(network).to_png(graph_filename + "-post.png")
