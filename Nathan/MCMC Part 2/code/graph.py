@@ -68,6 +68,15 @@ class DotGraph(object):
                 node_name += " = {}".format(node.current_value)
             dot_node.set('label', node_name)
 
+            shape = None
+            if node.is_bottom_marked and node.is_top_marked:
+                shape = "diamond"
+            elif node.is_bottom_marked:
+                shape = "invtriangle"
+            elif node.is_top_marked:
+                shape = "triangle"
+            if shape:
+                dot_node.set('shape', shape)
 
             if node.is_pruned:
                 dot_node.set('color', 'red')
