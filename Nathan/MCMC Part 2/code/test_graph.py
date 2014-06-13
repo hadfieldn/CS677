@@ -6,9 +6,10 @@ from node_bernoulli import *
 from node_beta import *
 from node_gamma import *
 from node_poisson import *
+from timeit import default_timer as timer
 import logging
 
-logging.basicConfig(level=logging.ERROR, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
 _log = logging.getLogger("test_graph")
 
 class TestDotGraph(TestCase):
@@ -141,3 +142,78 @@ class TestPruner(TestCase):
         network = Network([_0, _1, _2, _3, _4, _5, _6, _7], name="Shachter Fig. 3")
         Pruner().prune(network, [_6], [_2, _5], graph_filename="test_graph_output/dg_fig_3")
         self.assertSetEqual(set(network.pruned_nodes), {_0, _1, _2, _3, _5, _6})
+
+    def test_large_network(self):
+        for num_nodes in [10**3]:
+            self.prune_large_network(num_nodes, write_image=True)
+
+        for num_nodes in [10**4, 10**5, 10**6, 10**7]:
+            start = timer()
+            self.prune_large_network(num_nodes)
+            elapsed_time = timer() - start
+            print("{} nodes = {}".format(num_nodes, elapsed_time))
+
+    def prune_large_network(self, num_nodes, write_image=False):
+
+        network = self.create_graph_network(num_nodes)
+        num_query_nodes = int(.20 * num_nodes)
+        num_evidence_nodes = int(.20 * num_nodes)
+
+        _log.info("Nodes before pruning: {}...".format(len(network.nodes)))
+        Pruner().prune(network, [network.nodes[random.randint(0, num_nodes-1)] for i in range(num_query_nodes)],
+                       [network.nodes[random.randint(0, num_nodes-1)] for i in range(num_evidence_nodes)])
+        _log.info("Nodes after pruning: {}".format(len(network.pruned_nodes)))
+
+        if write_image:
+            image_filename = "test_graph_output/large_network_{}-post.svg".format(num_nodes)
+            _log.info("Generating graph image '{}'....".format(image_filename))
+            DotGraph(network).to_svg(image_filename)
+            _log.info("Done.")
+
+    def create_tree_network(self, num_nodes):
+        mean_parents_per_node = 1
+        nodes = []
+        progress_step = num_nodes // 10
+        _log.info("Generating graph network with {} nodes...".format(num_nodes))
+        for i in range(num_nodes):
+            if (i+1) % progress_step == 0:
+                _log.info("{}%...".format(10*(i+1)//progress_step))
+            if i > 0:
+                num_parents = min(i, max(1, abs(int(random.gauss(mean_parents_per_node, 0.01)))))
+                parents = [nodes[random.randint(0, i-1)] for j in range(num_parents)]
+            else:
+                parents = []
+            nodes.append(BernoulliNode(0, str(i), parents=parents))
+
+        return Network(nodes, name="Large Tree Network")
+
+    def create_graph_network(self, num_nodes):
+
+        nodes = [BernoulliNode(0, str(0))]
+
+        progress_step = num_nodes // 10
+        _log.info("Generating graph network with {} nodes...".format(num_nodes))
+        for i in range(num_nodes):
+            if (i+1) % progress_step == 0:
+                _log.info("{}%...".format(10*(i+1)//progress_step))
+
+            node = nodes[random.randint(0, len(nodes)-1)]
+            new_node = BernoulliNode(0,str(i))
+            is_parent = True if random.randint(0,1) == 1 else False
+            if is_parent:
+                node.connect_to_parent_node(new_node)
+            else:
+                new_node.connect_to_parent_node(node)
+
+            nodes.append(new_node)
+
+        # add some edges to make it more dense
+        # TODO: make acyclic
+        # for i in range(int(num_nodes * 0.25)):
+        #     node_a = nodes[random.randint(0, len(nodes)-1)]
+        #     node_b = nodes[random.randint(0, len(nodes)-1)]
+        #     if not node_b in node_a.parents:
+        #         node_b.connect_to_parent_node(node_a)
+
+        return Network(nodes, name="Large Graph Network")
+

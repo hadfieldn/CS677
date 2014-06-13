@@ -26,7 +26,7 @@ class BernoulliNode(Node):
             parents = []
 
         if len(p) != 2**len(parents):
-            _log.warn("List 'p' must have entries for 2**len(parents) = {}".format(2**len(parents)))
+            _log.debug("List 'p' must have entries for 2**len(parents) = {}".format(2**len(parents)))
 
         self.p = p
         self.bernoulli_parents = parents

@@ -22,7 +22,7 @@ for g_observed in [False]: #, True]:
 
     # Plot[PDF[BetaDistribution[1, 1], x], {x, 0, 1}, PlotRange -> All]
     # Flat (p=1.0) -- so this node moves all over the place!
-    e = BetaNode(0.5, 'E', alpha=1, beta=1)
+    e = BetaNode(1, 'E', alpha=1, beta=1)
 
     # Manipulate[Plot[PDF[GammaDistribution[a^Pi, 1/7], x], {x, 0, 5000}, PlotRange -> 0.1], {a, 16, 24}]
     # This node converges fairly tightly with nearly equal probability on on some value between about
@@ -41,7 +41,7 @@ for g_observed in [False]: #, True]:
     # Manipulate[DiscretePlot[PDF[PoissonDistribution[rate], x], {x, 0, 10},PlotRange -> All, PlotMarkers -> Automatic], {rate, 0.001, 1}]
     # When rate is close to 1, most likely values are 0 and 1, with some probability of 2 and slight probability of 3, and very slight
     # probability of 4. For lower values of rate, skew is even closer toward 0.
-    f = PoissonNode(0.1, 'F', rate=d)
+    f = PoissonNode(1, 'F', rate=d)
 
     # Manipulate[Plot[PDF[NormalDistribution[mean, Sqrt[var]], x], {x, -4, 5}, PlotRange -> {0, 1}], {mean, 0, 1}, {var, 0.0001, 4}]
     # Mean is close to 1, variance is likely to be 0 or 1, somewhat likely to be 2 or 3 -- so values are likely to be somewhere
