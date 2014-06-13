@@ -59,7 +59,10 @@ class DotGraph(object):
     def graph(self):
         g = pydot.Dot(graph_type='digraph', graph_name=id(self.network))
 
-        def add_node_to_dot_graph(node, g=g):
+        def add_node_to_dot_graph(node, g=g, debug=False):
+
+            if not debug and isinstance(node, FlagNode):
+                return
 
             dot_node = pydot.Node(id(node))
 
@@ -68,15 +71,16 @@ class DotGraph(object):
                 node_name += " = {}".format(node.current_value)
             dot_node.set('label', node_name)
 
-            shape = None
-            if node.is_bottom_marked and node.is_top_marked:
-                shape = "diamond"
-            elif node.is_bottom_marked:
-                shape = "invtriangle"
-            elif node.is_top_marked:
-                shape = "triangle"
-            if shape:
-                dot_node.set('shape', shape)
+            if debug:
+                shape = None
+                if node.is_bottom_marked and node.is_top_marked:
+                    shape = "diamond"
+                elif node.is_bottom_marked:
+                    shape = "invtriangle"
+                elif node.is_top_marked:
+                    shape = "triangle"
+                if shape:
+                    dot_node.set('shape', shape)
 
             if node.is_pruned:
                 dot_node.set('color', 'red')
@@ -98,6 +102,8 @@ class DotGraph(object):
             g.add_node(dot_node)
 
             for parent_node in node.parents:
+                if not debug and isinstance(parent_node,FlagNode):
+                    continue
                 edge = pydot.Edge(id(parent_node), id(node))
                 if node.is_pruned or parent_node.is_pruned:
                     edge.set('color', 'red')
