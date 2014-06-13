@@ -127,3 +127,17 @@ class TestPruner(TestCase):
         network = Network([_1, _2, _3, _4, _5, _6, ghost], name="Shachter Fig. 3")
         Pruner().prune(network, [_6], [_2, _5], graph_filename="test_graph_output/shachter_fig_3")
         self.fail()
+
+    def test_pre_process(self):
+        _0 = BernoulliNode(0, '0')
+        _1 = BernoulliNode(0, '1',parents=[_0])
+        _3 = BernoulliNode(0, '3')
+        _2 = BernoulliNode(0, '2', parents=[_1, _3])
+        _5 = BernoulliNode(0, '5')
+        _4 = BernoulliNode(0, '4', parents=[_5])
+        _6 = BernoulliNode(0, '6', parents=[_3, _5])
+        _7 = BernoulliNode(0, '7', parents=[_6])
+
+        network = Network([_1, _2, _3, _4, _5, _6, _7], name="Shachter Fig. 3")
+        Pruner().prune(network, [_6], [_2, _5], graph_filename="test_graph_output/shachter_fig_3")
+        self.fail()

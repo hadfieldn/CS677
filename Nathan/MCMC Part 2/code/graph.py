@@ -7,33 +7,37 @@ _log = logging.getLogger("network")
 
 class GraphTraverser(object):
 
-    def traverse(self, nodes, visit_func):
+    def traverse(self, nodes, visit_func, skip_parents=False, skip_children=False):
         """
         Invokes function 'visit_func' on each node in the graph, passing
         the current node as an argument.
         """
         _visitedNodes = {}
         for node in nodes:
-            self._traverse(node, visit_func, _visitedNodes)
+            self._traverse(node, visit_func, _visitedNodes, skip_parents, skip_children)
 
-    def _traverse(self, start_node, visit_func, _visited_nodes=None):
+    def _traverse(self, start_node, visit_func, _visited_nodes=None, skip_parents=False, skip_children=False):
 
         if _visited_nodes is None:
             _visited_nodes = {}
         elif start_node in _visited_nodes:
             return
 
+        print(start_node.name)
+
         _visited_nodes[start_node] = True
 
-        for node in start_node.children:
-            if isinstance(node, Node) and not node in _visited_nodes:
-                self._traverse(node, visit_func, _visited_nodes)
+        if not skip_children:
+            for node in start_node.children:
+                if isinstance(node, Node) and not node in _visited_nodes:
+                    self._traverse(node, visit_func, _visited_nodes, skip_parents, skip_children)
 
         visit_func(start_node)
 
-        for node in start_node.parents:
-            if isinstance(node, Node) and not node in _visited_nodes:
-                self._traverse(node, visit_func, _visited_nodes)
+        if not skip_parents:
+            for node in start_node.parents:
+                if isinstance(node, Node) and not node in _visited_nodes:
+                    self._traverse(node, visit_func, _visited_nodes, skip_parents, skip_children)
 
 
 class DotGraph(object):
@@ -128,8 +132,31 @@ class Pruner(object):
     def __str__(self):
         pass
 
-    def set_flag_nodes(self, network, query, evidence):
-        pass
+    def set_flag_nodes(self, network, evidence):
+
+        def mark_with_child_flag(node):
+            if node.is_observed:
+                return
+            for child in node.children:
+                if child.is_observed:
+                    return
+
+            flag = FlagNode()
+            flag.connect_to_parent_node(node)
+
+        def mark_with_parent_flag(node):
+            if node.is_observed:
+                return
+            for parent in node.parents:
+                if parent.is_observed:
+                    return
+
+            flag = FlagNode()
+            node.connect_to_parent_node(flag)
+
+        graph = GraphTraverser()
+        graph.traverse(evidence, mark_with_parent_flag, skip_parents=True)
+        graph.traverse(evidence, mark_with_child_flag, skip_children=True)
 
     def prune(self, network, query=None, evidence=None, graph_filename=None):
         """
@@ -171,9 +198,15 @@ class Pruner(object):
         for node in evidence:
             node.is_observed = True
 
-        # Record the pre-pruning network
+        # Record the original network
         if graph_filename:
-            DotGraph(network).to_png(graph_filename + "-pre.png")
+            DotGraph(network).to_png(graph_filename + "-orig.png")
+
+        self.set_flag_nodes(network, evidence)
+
+        #Record the graph after pre-process
+        if graph_filename:
+            DotGraph(network).to_png(graph_filename + "-after_pre_proc.png")
 
         # TODO: Pruning algorithm goes here
 
