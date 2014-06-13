@@ -239,7 +239,7 @@ class Pruner(object):
                     node.is_top_marked = True
                     for parent_node in node.parents:
                         scheduled_nodes.append((parent_node, FROM_CHILD))
-                elif node.is_observed and not node.is_bottom_marked:
+                elif not node.is_observed and not node.is_bottom_marked:
                     node.is_bottom_marked = True
                     for child_node in node.children:
                         scheduled_nodes.append((child_node, FROM_PARENT))
@@ -251,10 +251,15 @@ class Pruner(object):
                 node.parents.remove(node)
             """
 
-            if not node.is_bottom_marked:
-                node.is_pruned = True
-            if node.is_observed and not node.is_visited:
-                node.is_pruned = True
+
+            if node.is_observed:
+                if not node.is_visited:
+                    node.is_pruned = True
+            else:
+                if not node.is_bottom_marked:
+                    node.is_pruned = True
+                if not node.is_top_marked:
+                    node.is_pruned = True
 
         GraphTraverser().traverse(network.nodes, mark_pruned_nodes)
 
