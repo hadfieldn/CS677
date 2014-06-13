@@ -9,7 +9,7 @@ from node_poisson import *
 from timeit import default_timer as timer
 import logging
 
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
+logging.basicConfig(level=logging.WARNING, format='[%(levelname)s] %(module)s %(funcName)s(): %(message)s')
 _log = logging.getLogger("test_graph")
 
 class TestDotGraph(TestCase):
@@ -70,7 +70,7 @@ class TestPruner(TestCase):
         q = BernoulliNode(0, 'q', parents=[b])
         network = Network([e, a, b, q], name="Forward")
         Pruner().prune(network, {q}, {e}, graph_filename="test_graph_output/forward")
-        self.assertSetEqual(set(network.pruned_nodes), {e, a, b, q})
+        self.assertSetEqual({e, a, b, q}, set(network.pruned_nodes))
 
     def test_flow_backward(self):
         q = BernoulliNode(0, 'q')
@@ -79,7 +79,7 @@ class TestPruner(TestCase):
         e = BernoulliNode(0, 'e', parents=[a])
         network = Network([e, a, b, q], name="Backward")
         Pruner().prune(network, {q}, {e}, graph_filename="test_graph_output/backward")
-        self.assertSetEqual(set(network.pruned_nodes), {e, a, b, q})
+        self.assertSetEqual({e, a, b, q}, set(network.pruned_nodes))
 
     def test_flow_v(self):
         a = BernoulliNode(0, 'a')
@@ -87,7 +87,7 @@ class TestPruner(TestCase):
         e = BernoulliNode(0, 'e', parents=[a, q])
         network = Network([a, q, e], name='"V" Structure')
         Pruner().prune(network, {q}, {e}, graph_filename="test_graph_output/v_structure")
-        self.assertSetEqual(set(network.pruned_nodes), {a, q, e})
+        self.assertSetEqual({a, q, e}, set(network.pruned_nodes))
 
     def test_flow_y(self):
         a = BernoulliNode(0, 'a')
@@ -96,7 +96,7 @@ class TestPruner(TestCase):
         e = BernoulliNode(0, 'e', parents=[b])
         network = Network([e, a, b, q], name='"Y" Structure')
         Pruner().prune(network, {q}, {e}, graph_filename="test_graph_output/y_structure")
-        self.assertSetEqual(set(network.pruned_nodes), {a, q, b, e})
+        self.assertSetEqual({a, q, b, e}, set(network.pruned_nodes))
 
     def test_flow_inverted_v(self):
         a = BernoulliNode(0, 'a')
@@ -104,7 +104,82 @@ class TestPruner(TestCase):
         e = BernoulliNode(0, 'e', parents=[a])
         network = Network([a, q, e], name='"Inverted-V"')
         Pruner().prune(network, {q}, {e}, graph_filename="test_graph_output/inverted_v")
-        self.assertSetEqual(set(network.pruned_nodes), {a, q, e})
+        self.assertSetEqual({a, q, e}, set(network.pruned_nodes))
+
+    def test_basics(self):
+        a = BernoulliNode(0, 'a')
+        b = BernoulliNode(0, 'b', parents=[a])
+        c = BernoulliNode(0, 'c', parents=[b])
+        network = Network([a, b, c], name='"Blocking Forward"')
+        Pruner().prune(network, {a}, {b, c}, graph_filename="test_graph_output/01_blocking_forward")
+        self.assertSetEqual({a, b}, set(network.pruned_nodes))
+
+        c = BernoulliNode(0, 'c')
+        b = BernoulliNode(0, 'b', parents=[c])
+        a = BernoulliNode(0, 'a', parents=[b])
+        network = Network([a, b, c], name='"Blocking Backward"')
+        Pruner().prune(network, {a}, {b, c}, graph_filename="test_graph_output/02_blocking_backward")
+        self.assertSetEqual({a, b}, set(network.pruned_nodes))
+
+        b = BernoulliNode(0, 'b')
+        a = BernoulliNode(0, 'a', parents=[b])
+        c = BernoulliNode(0, 'c', parents=[b])
+        network = Network([a, b, c], name='"Blocking Inverted-V"')
+        Pruner().prune(network, {a}, {b, c}, graph_filename="test_graph_output/03_blocking_inverted_v")
+        self.assertSetEqual({a, b}, set(network.pruned_nodes))
+
+        a = BernoulliNode(0, 'a')
+        c = BernoulliNode(0, 'c')
+        b = BernoulliNode(0, 'b', parents=[a, c])
+        network = Network([a, b, c], name='"Flowing V"')
+        Pruner().prune(network, {a}, {b, c}, graph_filename="test_graph_output/04_flowing_v")
+        self.assertSetEqual({a, b, c}, set(network.pruned_nodes))
+
+        a = BernoulliNode(0, 'a')
+        c = BernoulliNode(0, 'c')
+        b = BernoulliNode(0, 'b', parents=[a, c])
+        network = Network([a, b, c], name='"Blocking V"')
+        Pruner().prune(network, {a}, {c}, graph_filename="test_graph_output/05_blocking_v")
+        self.assertSetEqual({a}, set(network.pruned_nodes))
+
+        b = BernoulliNode(0, 'b')
+        a = BernoulliNode(0, 'a', parents=[b])
+        c = BernoulliNode(0, 'c', parents=[b])
+        network = Network([a, b, c], name='"Flowing Inverted-V"')
+        Pruner().prune(network, {a}, {c}, graph_filename="test_graph_output/06_flowing_inverted_v")
+        self.assertSetEqual({a, b, c}, set(network.pruned_nodes))
+
+        a = BernoulliNode(0, 'a')
+        b = BernoulliNode(0, 'b', parents=[a])
+        c = BernoulliNode(0, 'c', parents=[b])
+        network = Network([a, b, c], name='"Flowing Forward"')
+        Pruner().prune(network, {a}, {c}, graph_filename="test_graph_output/07_flowing_forward")
+        self.assertSetEqual({a, b, c}, set(network.pruned_nodes))
+
+        c = BernoulliNode(0, 'c')
+        b = BernoulliNode(0, 'b', parents=[c])
+        a = BernoulliNode(0, 'a', parents=[b])
+        network = Network([a, b, c], name='"Flowing Backward"')
+        Pruner().prune(network, {a}, {c}, graph_filename="test_graph_output/08_flowing_backward")
+        self.assertSetEqual({a, b, c}, set(network.pruned_nodes))
+
+        a = BernoulliNode(0, 'a')
+        c = BernoulliNode(0, 'c')
+        b = BernoulliNode(0, 'b', parents=[a, c])
+        d = BernoulliNode(0, 'd', parents=[b])
+        e = BernoulliNode(0, 'e', parents=[d])
+        network = Network([a, b, c, d, e], name='"Flowing Y"')
+        Pruner().prune(network, {a}, {c}, graph_filename="test_graph_output/09_flowing_y")
+        self.assertSetEqual({a}, set(network.pruned_nodes))
+
+        a = BernoulliNode(0, 'a')
+        c = BernoulliNode(0, 'c')
+        b = BernoulliNode(0, 'b', parents=[a, c])
+        d = BernoulliNode(0, 'd', parents=[b])
+        e = BernoulliNode(0, 'e', parents=[d])
+        network = Network([a, b, c, d, e], name='"Blocking Y"')
+        Pruner().prune(network, {a}, {c, e}, graph_filename="test_graph_output/10_blocking_y")
+        self.assertSetEqual({a, b, c, d, e}, set(network.pruned_nodes))
 
     def test_mixed_sequences(self):
         self.fail()
@@ -147,7 +222,7 @@ class TestPruner(TestCase):
         for num_nodes in [10**3]:
             self.prune_large_network(num_nodes, write_image=True)
 
-        for num_nodes in [10**4, 10**5, 10**6, 10**7]:
+        for num_nodes in [10**3, 10**4, 10**5, 10**6, 2*10**6, 5*10**6]: #, 10**7]:
             start = timer()
             self.prune_large_network(num_nodes)
             elapsed_time = timer() - start

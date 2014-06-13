@@ -215,8 +215,8 @@ class Pruner(object):
             node.is_observed = True
 
         # Record the original network
-        if graph_filename:
-            DotGraph(network).to_svg(graph_filename + "-orig.svg")
+        # if graph_filename:
+        #     DotGraph(network).to_svg(graph_filename + "-orig.svg")
 
         self.set_flag_nodes(network, evidence)
 
@@ -268,5 +268,5 @@ class Pruner(object):
 
         # Record the post-pruning network
         if graph_filename:
-            DotGraph(network).to_svg(graph_filename + "-post.svg")
+            DotGraph(network).to_png(graph_filename + "-post.png")
 
