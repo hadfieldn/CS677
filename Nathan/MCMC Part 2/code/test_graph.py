@@ -218,6 +218,22 @@ class TestPruner(TestCase):
         Pruner().prune(network, [_6], [_2, _5], graph_filename="test_graph_output/dg_fig_3")
         self.assertSetEqual(set(network.pruned_nodes), {_0, _1, _2, _3, _5, _6})
 
+    def test_medium_networks(self):
+
+        for i in range(3):
+            num_nodes = 50
+            network = self.create_graph_network(num_nodes, "Medium Network {}".format(i+1))
+            num_query_nodes = int(.20 * num_nodes)
+            num_evidence_nodes = int(.20 * num_nodes)
+
+            Pruner().prune(network, [network.nodes[random.randint(0, num_nodes-1)] for i in range(num_query_nodes)],
+                           [network.nodes[random.randint(0, num_nodes-1)] for i in range(num_evidence_nodes)])
+
+            image_filename = "test_graph_output/medium_network_{:2d}-post.png".format(i)
+            _log.info("Generating medium graph image '{}'....".format(image_filename))
+            DotGraph(network).to_png(image_filename)
+
+
     def test_large_network(self):
         for num_nodes in [10**3]:
             self.prune_large_network(num_nodes, write_image=True)
@@ -262,7 +278,7 @@ class TestPruner(TestCase):
 
         return Network(nodes, name="Large Tree Network")
 
-    def create_graph_network(self, num_nodes):
+    def create_graph_network(self, num_nodes, name="Graph Network"):
 
         nodes = [BernoulliNode(0, str(0))]
 
@@ -290,5 +306,5 @@ class TestPruner(TestCase):
         #     if not node_b in node_a.parents:
         #         node_b.connect_to_parent_node(node_a)
 
-        return Network(nodes, name="Large Graph Network")
+        return Network(nodes, name=name)
 
