@@ -23,7 +23,7 @@ class GraphTraverser(object):
         elif start_node in _visited_nodes:
             return
 
-        print(start_node.name)
+        _log.debug(start_node.name)
 
         _visited_nodes[start_node] = True
 
@@ -221,8 +221,8 @@ class Pruner(object):
         self.set_flag_nodes(network, evidence)
 
         #Record the graph after pre-process
-        if graph_filename:
-            DotGraph(network).to_png(graph_filename + "-after_pre_proc.png")
+        # if graph_filename:
+        #     DotGraph(network).to_png(graph_filename + "-after_pre_proc.png")
 
         FROM_CHILD = True
         FROM_PARENT = False
@@ -252,20 +252,17 @@ class Pruner(object):
 
         def mark_pruned_nodes(node):
 
-            """if isinstance(node, FlagNode):
-                node.children.remove(node)
-                node.parents.remove(node)
-            """
-
-
-            if node.is_observed:
-                if not node.is_visited:
-                    node.is_pruned = True
+            if isinstance(node, FlagNode):
+                node.is_pruned = True
             else:
-                if not node.is_bottom_marked:
-                    node.is_pruned = True
-                if not node.is_top_marked:
-                    node.is_pruned = True
+                if node.is_observed:
+                    if not node.is_visited:
+                        node.is_pruned = True
+                else:
+                    if not node.is_bottom_marked:
+                        node.is_pruned = True
+                    if not node.is_top_marked:
+                        node.is_pruned = True
 
         GraphTraverser().traverse(network.nodes, mark_pruned_nodes)
 

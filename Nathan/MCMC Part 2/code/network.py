@@ -45,7 +45,7 @@ class Network(object):
         if disable_pruning:
             sampling_nodes = self.nodes
         else:
-            sampling_nodes = [node for node in self.nodes if not node.is_pruned]
+            sampling_nodes = self.pruned_nodes
 
         mcmc = self.sample_generator(sampling_nodes)
 
@@ -73,6 +73,9 @@ class Network(object):
 
         return SamplesProcessor(sampling_nodes, samples)
 
+    @property
+    def pruned_nodes(self):
+        return [node for node in self.nodes if not node.is_pruned]
 
 class SamplesProcessor(object):
 
